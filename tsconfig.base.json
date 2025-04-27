@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "baseUrl": ".",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "lib": [
+      "esnext"
+    ],
+    "declaration": true,
+    "declarationDir": "./dist/types",
+    "rootDir": "./src",
+  },
+  "include": [
+    "src",
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}
