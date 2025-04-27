@@ -2,7 +2,7 @@ import type { Update } from "@grammyjs/types";
 
 import { CallService } from "./call.service";
 import { PayloadService } from "./payload";
-import { FrameworkConfig, UpdateHandler } from "./types";
+import { FrameworkConfig, UpdateHandler, UpdateResult } from "./types";
 import { ActionsService } from "./actions";
 import { ApiService } from "./api.service";
 import { type ContextAny, createContext, getContext } from "./context";
@@ -122,10 +122,28 @@ export class Telegram {
 
     await this.middlewaresService.execute();
 
-    await this.handler(update);
+    await this.tryHandler(ctx, 1);
 
     if (update.callback_query && !ctx.flags.callbackAnswered) {
       await this.context.answerCallbackQuery();
+    }
+  }
+
+  private async tryHandler(
+    ctx: ContextAny,
+    tryCount: number,
+  ): Promise<UpdateResult> {
+    const result = await this.handler();
+
+    if (typeof result === "object" && result.redirect) {
+      const { action, payload } = result.redirect;
+      ctx.action = action;
+
+      ctx.payload = this.payload.parse(ctx.action, ctx.payload, payload);
+
+      if (tryCount < 5) {
+        await this.tryHandler(ctx, tryCount + 1);
+      }
     }
   }
 

@@ -1,16 +1,16 @@
 import type { Update } from "@grammyjs/types";
 
 import type { CallService } from "./call.service";
-import type { TelegramMethod, UpdateHandler } from "./types";
+import type { TelegramMethod } from "./types";
 import { Logger } from "./logger";
 
 type UpdateOptions = {
   callService: CallService;
-  handler: UpdateHandler;
+  handler: (update: Update) => Promise<void>;
 };
 export class UpdateService {
   private readonly callService: CallService;
-  private readonly handler: UpdateHandler;
+  private readonly handler: (update: Update) => Promise<void>;
 
   private logger = new Logger(UpdateService.name);
 

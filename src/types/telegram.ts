@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Stream } from 'stream';
-
-import type { Update } from '@grammyjs/types';
-import type { Message } from '@grammyjs/types/message';
-import type { ApiMethods } from '@grammyjs/types/methods';
+import { Stream } from "stream";
+import type { Message } from "@grammyjs/types/message";
+import type { ApiMethods } from "@grammyjs/types/methods";
+import { UpdateResult } from "./handlers";
 
 export type SendFile = {
   stream: Stream;
@@ -17,22 +16,24 @@ export type TelegramMethod<MethodName extends keyof ApiMethods<SendFile>> =
     : never;
 
 export type GetArgsFromMethod<MethodName extends keyof ApiMethods<SendFile>> =
-  ApiMethods<SendFile>[MethodName] extends (args: infer Args) => any ? Args : never;
+  ApiMethods<SendFile>[MethodName] extends (args: infer Args) => any
+    ? Args
+    : never;
 
-export type UpdateHandler = (update: Update) => Promise<void>;
+export type UpdateHandler = () => Promise<UpdateResult>;
 
-export type EditMessageTextArgs = GetArgsFromMethod<'editMessageText'>;
+export type EditMessageTextArgs = GetArgsFromMethod<"editMessageText">;
 
 export type EditMessageTextResult = Message.TextMessage;
 
-export type SendMessageArgs = GetArgsFromMethod<'sendMessage'>;
+export type SendMessageArgs = GetArgsFromMethod<"sendMessage">;
 
 export type SendMessageResult = Message.TextMessage;
 
-export type AnswerCallbackQueryArgs = GetArgsFromMethod<'answerCallbackQuery'>;
+export type AnswerCallbackQueryArgs = GetArgsFromMethod<"answerCallbackQuery">;
 
-export type AnswerInlineQueryArgs = GetArgsFromMethod<'answerInlineQuery'>;
+export type AnswerInlineQueryArgs = GetArgsFromMethod<"answerInlineQuery">;
 
-export type SendDocumentArgs = GetArgsFromMethod<'sendDocument'>;
+export type SendDocumentArgs = GetArgsFromMethod<"sendDocument">;
 
-export type SendPhotoArgs = GetArgsFromMethod<'sendPhoto'>;
+export type SendPhotoArgs = GetArgsFromMethod<"sendPhoto">;
