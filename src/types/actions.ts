@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { PayloadSchema, PayloadSchemaAny } from '../payload';
+import { PayloadSchema, PayloadSchemaAny } from "../payload";
 
 export type Meta = {
   id: number;
@@ -9,7 +9,7 @@ export type Meta = {
   childOf(action: ActionItem): boolean;
 };
 
-export const PayloadsField = '@payloads';
+export const PayloadsField = "@payloads";
 
 export type ActionItem = {
   meta: Meta;
@@ -19,7 +19,9 @@ export type ActionItemPayload<S = any> = ActionItem & {
   [PayloadsField]: PayloadSchema<S>;
 };
 
-export type ActionItemSelectToken = ActionItemPayload<{ tokenSymbol: string }>;
+export type ActionItemWithoutPayload = ActionItem & {
+  [PayloadsField]?: never;
+};
 
 export type ActionItemCommand = ActionItemPayload<{
   command: string;

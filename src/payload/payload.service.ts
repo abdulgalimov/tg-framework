@@ -2,7 +2,11 @@
 
 import { ActionsService } from "../actions";
 import { type Context, getContext } from "../context";
-import type { ActionItem, ActionItemPayload } from "../types";
+import {
+  ActionItem,
+  ActionItemPayload,
+  ActionItemWithoutPayload,
+} from "../types";
 import type { InferPayloads } from "./schema";
 import { fullKeys, fullValues, shortKeys, shortValues } from "./shorts";
 import type { UnknownPayload } from "./types";
@@ -73,9 +77,9 @@ export class PayloadService {
     action: A,
     data: InferPayloads<A>,
   ): string;
-  public encode<A extends ActionItem>(action: A): string;
-  public encode<A extends ActionItem>(
-    action: A,
+  public encode(action: ActionItemWithoutPayload): string;
+  public encode(
+    action: ActionItem | ActionItemPayload,
     data?: UnknownPayload,
   ): string {
     const ctx = getContext<Context<{ action: ActionItemPayload }>>();
