@@ -10,9 +10,9 @@ import type {
   CreateFormOptions,
   Form,
   ReplyArgsContext,
+  KeyValueStorage,
 } from "./types";
 import { Logger } from "./logger";
-import { KeyValueStorage } from "./config";
 
 export class FormService {
   // Delete from history the messages entered by the user during the token search process.

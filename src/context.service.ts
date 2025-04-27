@@ -1,11 +1,14 @@
-import type { InlineKeyboardButton, InlineKeyboardMarkup } from '@grammyjs/types/markup';
-import type { Message } from '@grammyjs/types/message';
+import type {
+  InlineKeyboardButton,
+  InlineKeyboardMarkup,
+} from "@grammyjs/types/markup";
+import type { Message } from "@grammyjs/types/message";
 
-import { ApiService } from './api.service';
-import { getContext } from './context';
-import { CallApiError, TgErrorCodes } from './errors';
-import type { LocaleService } from './locale.service';
-import { PayloadService } from './payload';
+import { ApiService } from "./api.service";
+import { getContext } from "./context";
+import { CallApiError, TgErrorCodes } from "./errors";
+import type { LocaleService } from "./locale.service";
+import { PayloadService } from "./payload";
 import type {
   AllActionsTree,
   AnswerCallbackQueryContext,
@@ -17,7 +20,7 @@ import type {
   ReplyOptions,
   ReplyResultContext,
   SendMessageArgs,
-} from './types';
+} from "./types";
 
 export class ContextService {
   public constructor(
@@ -32,19 +35,22 @@ export class ContextService {
     const { user, update } = ctx;
 
     const chatId =
-      update.callback_query?.message?.chat.id || update.message?.chat.id || user.telegramId;
-    const deleteMessageId = messageId || update.callback_query?.message?.message_id;
+      update.callback_query?.message?.chat.id ||
+      update.message?.chat.id ||
+      user.telegramId;
+    const deleteMessageId =
+      messageId || update.callback_query?.message?.message_id;
 
     if (!chatId) {
-      throw new Error('Invalid chatId in context:delete');
+      throw new Error("Invalid chatId in context:delete");
     }
     if (!deleteMessageId) {
-      throw new Error('Invalid messageId in context:delete');
+      throw new Error("Invalid messageId in context:delete");
     }
 
     ctx.flags.messageDeleted = true;
 
-    if (typeof deleteMessageId === 'number') {
+    if (typeof deleteMessageId === "number") {
       await this.apiService.deleteMessage({
         chat_id: chatId,
         message_id: deleteMessageId,
@@ -60,10 +66,12 @@ export class ContextService {
   public async send(args: ReplyArgsContext): Promise<void> {
     const ctx = getContext();
 
-    const chatId = ctx.update.callback_query?.message?.chat.id || ctx.update.message?.chat.id;
+    const chatId =
+      ctx.update.callback_query?.message?.chat.id ||
+      ctx.update.message?.chat.id;
 
     if (!chatId) {
-      throw new Error('Invalid chatId in context:send');
+      throw new Error("Invalid chatId in context:send");
     }
 
     await this.apiService.sendMessage({
@@ -73,16 +81,20 @@ export class ContextService {
   }
 
   public addButton(args: KeyboardArgs, button: InlineKeyboardButton) {
-    const keyboard: InlineKeyboardMarkup = (args.reply_markup as InlineKeyboardMarkup) || {
-      inline_keyboard: [],
-    };
+    const keyboard: InlineKeyboardMarkup =
+      (args.reply_markup as InlineKeyboardMarkup) || {
+        inline_keyboard: [],
+      };
 
     keyboard.inline_keyboard.push([button]);
 
     args.reply_markup = keyboard;
   }
 
-  public async reply(args: ReplyArgsContext, options?: ReplyOptions): Promise<ReplyResultContext> {
+  public async reply(
+    args: ReplyArgsContext,
+    options?: ReplyOptions,
+  ): Promise<ReplyResultContext> {
     const ctx = getContext();
     const { update } = ctx;
 
@@ -93,14 +105,14 @@ export class ContextService {
     const callbackMessageId = update.callback_query?.message?.message_id;
 
     if (!chatId) {
-      throw new Error('Invalid chatId in context:reply');
+      throw new Error("Invalid chatId in context:reply");
     }
 
     const { sendMode, tryReplyMessage, hideButton } = options || {};
 
     if (hideButton) {
       this.addButton(args, {
-        text: this.localeService.text('hide-button'),
+        text: this.localeService.text("hide-button"),
         callback_data: this.payloadService.encode(this.actionsTree.core.hide),
       });
     }
@@ -162,11 +174,11 @@ export class ContextService {
     const ctx = getContext();
 
     if (!ctx.update.callback_query) {
-      throw new Error('Invalid callback query in context:answerCallbackQuery');
+      throw new Error("Invalid callback query in context:answerCallbackQuery");
     }
 
     if (ctx.flags.callbackAnswered) {
-      throw new Error('Callback answered');
+      throw new Error("Callback answered");
     }
 
     const result = await this.apiService.answerCallbackQuery({
@@ -183,11 +195,11 @@ export class ContextService {
     const ctx = getContext();
 
     if (!ctx.update.inline_query) {
-      throw new Error('Invalid inline query in context:answerInlineQuery');
+      throw new Error("Invalid inline query in context:answerInlineQuery");
     }
 
     if (ctx.flags.inlineAnswered) {
-      throw new Error('Inline answered');
+      throw new Error("Inline answered");
     }
 
     const result = await this.apiService.answerInlineQuery({

@@ -1,6 +1,10 @@
-import { type ActionItem, type AllActionsTree, PayloadsField } from "../types";
+import {
+  KeyValueStorage,
+  type ActionItem,
+  type AllActionsTree,
+  PayloadsField,
+} from "../types";
 import { ActionMeta } from "./meta";
-import { KeyValueStorage } from "../config";
 
 const ActionItemSystemKeys = [PayloadsField];
 

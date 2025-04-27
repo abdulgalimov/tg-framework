@@ -4,8 +4,7 @@ import type { ApiService } from "../api.service";
 import type { FormService } from "../form.service";
 import type { InlineService } from "../inline.service";
 import type { PayloadService } from "../payload";
-import type { AllActionsTree } from "../types";
-import { Db, KeyValueStorage } from "../config";
+import type { AllActionsTree, Db, KeyValueStorage } from "../types";
 import { Logger } from "../logger";
 
 export abstract class BaseMw implements Middleware {

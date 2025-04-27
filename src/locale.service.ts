@@ -1,8 +1,6 @@
 import { getContext } from "./context";
 import { Logger } from "./logger";
-import { Locale } from "./config";
-
-export type TextIcons = Record<string, string>;
+import { Locale, TextIcons } from "./types";
 
 type Options = {
   args?: Record<string, unknown> | null;
@@ -11,15 +9,15 @@ type Options = {
 };
 
 export class LocaleService {
-  private readonly i18n: Locale;
+  private readonly locale: Locale;
 
   private readonly textIcons: TextIcons;
 
   private readonly logger: Logger;
 
-  public constructor(i18n: Locale, textIcons: TextIcons) {
-    this.i18n = i18n;
-    this.textIcons = textIcons;
+  public constructor(locale: Locale, textIcons?: TextIcons) {
+    this.locale = locale;
+    this.textIcons = textIcons || {};
     this.logger = new Logger(LocaleService.name);
   }
 
@@ -31,8 +29,8 @@ export class LocaleService {
     const languageCode = user.langCode || "en";
     try {
       const text = args
-        ? this.i18n.text(languageCode, textCode, args)
-        : this.i18n.text(languageCode, textCode);
+        ? this.locale.text(languageCode, textCode, args)
+        : this.locale.text(languageCode, textCode);
 
       const hasLeftValue = leftValue !== null && leftValue !== undefined;
 

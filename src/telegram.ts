@@ -2,8 +2,7 @@ import type { Update } from "@grammyjs/types";
 
 import { CallService } from "./call.service";
 import { PayloadService } from "./payload";
-import type { UpdateHandler } from "./types";
-import { FrameworkConfig } from "./config";
+import type { UpdateHandler, FrameworkConfig } from "./types";
 import { ActionsService } from "./actions";
 import { ApiService } from "./api.service";
 import { type ContextAny, createContext, getContext } from "./context";

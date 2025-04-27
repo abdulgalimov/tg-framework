@@ -6,3 +6,4 @@ export * from "./inline";
 export * from "./keyboard";
 export * from "./user";
 export * from "./handlers";
+export * from "./config";

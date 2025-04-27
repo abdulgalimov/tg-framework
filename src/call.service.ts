@@ -1,7 +1,7 @@
 import FormData from "form-data";
 
 import { CallApiError } from "./errors";
-import { TelegramConfig } from "./config";
+import { TelegramConfig } from "./types";
 
 export class CallService {
   private readonly telegramConfig: TelegramConfig;

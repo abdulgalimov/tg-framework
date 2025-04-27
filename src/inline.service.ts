@@ -4,8 +4,8 @@ import type {
   CreateInlineOptions,
   InlineData,
   InlineExtraOptions,
+  KeyValueStorage,
 } from "./types";
-import { KeyValueStorage } from "./config";
 
 const inlineReg = /^(?<query>\w+)(\s+(?<variables>.+))?/;
 
