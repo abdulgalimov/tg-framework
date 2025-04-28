@@ -3,7 +3,7 @@ import type { ApiService } from "../api.service";
 import type { FormService } from "../form.service";
 import type { InlineService } from "../inline.service";
 import type { PayloadService } from "../payload";
-import type { AllActionsTree, Db, KeyValueStorage } from "../types";
+import type { AllActionsTree, DataStorage } from "../types";
 
 export type MwServiceOptions = {
   actionsTree: AllActionsTree;
@@ -12,8 +12,7 @@ export type MwServiceOptions = {
   payloadService: PayloadService;
   actionsService: ActionsService;
   inlineService: InlineService;
-  db: Db;
-  storage: KeyValueStorage;
+  storage: DataStorage;
 };
 
 export type Middleware = {

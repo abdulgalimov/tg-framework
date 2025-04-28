@@ -4,7 +4,7 @@ import type {
   CreateInlineOptions,
   InlineData,
   InlineExtraOptions,
-  KeyValueStorage,
+  DataStorage,
 } from "./types";
 
 const inlineReg = /^(?<query>\w+)(\s+(?<variables>.+))?/;
@@ -12,7 +12,7 @@ const inlineReg = /^(?<query>\w+)(\s+(?<variables>.+))?/;
 export class InlineService {
   public constructor(
     private readonly apiService: ApiService,
-    private readonly redis: KeyValueStorage,
+    private readonly storage: DataStorage,
   ) {}
 
   public async create<Extra extends InlineExtraOptions = undefined>(
@@ -31,7 +31,10 @@ export class InlineService {
       extra: extra as Extra,
     };
 
-    await this.redis.setValue(`inline_${user.telegramId}_${query}`, inlineData);
+    await this.storage.setValue(
+      `inline_${user.telegramId}_${query}`,
+      inlineData,
+    );
 
     return inlineData;
   }
@@ -43,7 +46,7 @@ export class InlineService {
     inlineData.messageId = messageId;
     const { userId, query } = inlineData;
 
-    await this.redis.setValue(`inline_${userId}_${query}`, inlineData);
+    await this.storage.setValue(`inline_${userId}_${query}`, inlineData);
   }
 
   public async answerInvalid() {
@@ -79,7 +82,7 @@ export class InlineService {
 
     const { user } = ctx;
 
-    const inlineData = await this.redis.getValue<InlineData>(
+    const inlineData = await this.storage.getValue<InlineData>(
       `inline_${user.telegramId}_${query}`,
     );
     if (!inlineData) {

@@ -1,5 +1,5 @@
 import {
-  KeyValueStorage,
+  DataStorage,
   type ActionItem,
   type AllActionsTree,
   PayloadsField,
@@ -17,11 +17,11 @@ export class ActionsService {
 
   public constructor(
     private readonly actionsTree: AllActionsTree,
-    private readonly redis: KeyValueStorage,
+    private readonly storage: DataStorage,
   ) {}
 
   private async getIds(actionsList: string[]): Promise<IdsMap> {
-    let savedMap = await this.redis.getValue<IdsMap>("actions");
+    let savedMap = await this.storage.getValue<IdsMap>("actions");
     if (savedMap === null) {
       savedMap = {};
     }
@@ -37,7 +37,7 @@ export class ActionsService {
       }
     });
 
-    await this.redis.setValue("actions", savedMap);
+    await this.storage.setValue("actions", savedMap);
 
     return savedMap;
   }

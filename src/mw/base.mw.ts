@@ -4,13 +4,13 @@ import type { ApiService } from "../api.service";
 import type { FormService } from "../form.service";
 import type { InlineService } from "../inline.service";
 import type { PayloadService } from "../payload";
-import type { AllActionsTree, Db, KeyValueStorage } from "../types";
+import type { AllActionsTree, DataStorage } from "../types";
 import { Logger } from "../logger";
 
 export abstract class BaseMw implements Middleware {
   protected actionsTree: AllActionsTree;
 
-  protected readonly redis: KeyValueStorage;
+  protected readonly storage: DataStorage;
 
   protected readonly apiService: ApiService;
 
@@ -22,8 +22,6 @@ export abstract class BaseMw implements Middleware {
 
   protected readonly inlineService: InlineService;
 
-  protected readonly db: Db;
-
   protected logger: Logger;
 
   protected constructor(name: string, options: MwServiceOptions) {
@@ -33,8 +31,7 @@ export abstract class BaseMw implements Middleware {
     this.actionsService = options.actionsService;
     this.payloadService = options.payloadService;
     this.inlineService = options.inlineService;
-    this.db = options.db;
-    this.redis = options.storage;
+    this.storage = options.storage;
 
     this.logger = new Logger(name);
   }

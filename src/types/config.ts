@@ -8,14 +8,11 @@ export type TelegramConfig = {
   token: string;
 };
 
-export type Db = {
-  createOrUpdate(from: TgUser): Promise<User>;
-};
-
-export type KeyValueStorage = {
+export type DataStorage = {
   setValue(key: string, value: any): Promise<void>;
   getValue<R = unknown>(key: string): Promise<R | null>;
-  del(key: string): Promise<void>;
+  delValue(key: string): Promise<void>;
+  createUser(from: TgUser): Promise<User>;
 };
 
 export type Locale = {
@@ -28,8 +25,7 @@ export type Locale = {
 
 export type FrameworkConfig = {
   tg: TelegramConfig;
-  db: Db;
-  storage: KeyValueStorage;
+  storage: DataStorage;
   locale: Locale;
   actionsTree: AllActionsTree;
   handler: UpdateHandler;

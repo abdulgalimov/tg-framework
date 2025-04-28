@@ -4,10 +4,6 @@ import type { CallService } from "./call.service";
 import type { TelegramMethod } from "./types";
 import { Logger } from "./logger";
 
-type UpdateOptions = {
-  callService: CallService;
-  handler: (update: Update) => Promise<void>;
-};
 export class UpdateService {
   private readonly callService: CallService;
   private readonly handler: (update: Update) => Promise<void>;
@@ -16,9 +12,12 @@ export class UpdateService {
 
   private lastUpdateId: number = 0;
 
-  public constructor(options: UpdateOptions) {
-    this.callService = options.callService;
-    this.handler = options.handler;
+  public constructor(
+    callService: CallService,
+    handler: (update: Update) => Promise<void>,
+  ) {
+    this.callService = callService;
+    this.handler = handler;
   }
 
   public async startLongpoll() {

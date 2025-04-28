@@ -43,7 +43,7 @@ export class Telegram {
   private _username: string = "";
 
   public constructor(frameworkConfig: FrameworkConfig) {
-    const { storage, db, tg, locale, actionsTree, handler, textIcons } =
+    const { storage, tg, locale, actionsTree, handler, textIcons } =
       frameworkConfig;
 
     this.handler = handler;
@@ -78,7 +78,6 @@ export class Telegram {
     this.keyboard = new KeyboardService(this.context, this.payload);
 
     this.middlewaresService = new MiddlewaresService({
-      db,
       storage,
       actionsTree,
       apiService: this.api,
@@ -88,10 +87,9 @@ export class Telegram {
       inlineService: this.inline,
     });
 
-    this.updateService = new UpdateService({
-      callService: this.callService,
-      handler: (update) => this.updateHandler(update),
-    });
+    this.updateService = new UpdateService(this.callService, (update) =>
+      this.updateHandler(update),
+    );
   }
 
   public async init() {
@@ -100,7 +98,7 @@ export class Telegram {
     const me = await this.api.getMe({});
     this._username = me.username;
 
-    await this.updateService.startLongpoll();
+    this.updateService.startLongpoll().catch(this.logger.error);
   }
 
   private async updateHandler(update: Update) {

@@ -22,7 +22,7 @@ export class UserMw extends BaseMw {
 
     if (!from) return;
 
-    const user: User = await this.db.createOrUpdate(from);
+    const user: User = await this.storage.createUser(from);
 
     ctx.from = from;
     ctx.user = user;

@@ -10,7 +10,7 @@ import type {
   CreateFormOptions,
   Form,
   ReplyArgsContext,
-  KeyValueStorage,
+  DataStorage,
 } from "./types";
 import { Logger } from "./logger";
 
@@ -26,7 +26,7 @@ export class FormService {
 
   private readonly localeService: LocaleService;
 
-  private readonly redis: KeyValueStorage;
+  private readonly storage: DataStorage;
 
   private readonly logger = new Logger(FormService.name);
 
@@ -35,17 +35,17 @@ export class FormService {
     actionsService: ActionsService,
     payloadService: PayloadService,
     localeService: LocaleService,
-    storage: KeyValueStorage,
+    storage: DataStorage,
   ) {
     this.contextService = contextService;
     this.actionsService = actionsService;
     this.payloadService = payloadService;
     this.localeService = localeService;
-    this.redis = storage;
+    this.storage = storage;
   }
 
   public find(userId: number): Promise<Form | null> {
-    return this.redis.getValue(`user_form_${userId}`);
+    return this.storage.getValue(`user_form_${userId}`);
   }
 
   public async create<Data extends object = object>(
@@ -64,13 +64,13 @@ export class FormService {
       historyMessages: [],
     };
 
-    await this.redis.setValue(`user_form_${form.userId}`, form);
+    await this.storage.setValue(`user_form_${form.userId}`, form);
 
     return form;
   }
 
   public save(form: Form) {
-    return this.redis.setValue(`user_form_${form.userId}`, form);
+    return this.storage.setValue(`user_form_${form.userId}`, form);
   }
 
   public async delete(userId?: number): Promise<void> {
@@ -104,7 +104,7 @@ export class FormService {
       }
     }
 
-    await this.redis.del(`user_form_${userId || user.telegramId}`);
+    await this.storage.delValue(`user_form_${userId || user.telegramId}`);
   }
 
   public async reply(args: ReplyArgsContext) {
