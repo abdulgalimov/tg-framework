@@ -1,15 +1,21 @@
-import { ActionsMw } from './actions.mw';
-import type { Middleware, MwServiceOptions } from './types';
-import { UserMw } from './user.mw';
+import { ActionsMw } from "./actions.mw";
+import type { Middleware } from "./types";
+import { UserMw } from "./user.mw";
+import { Inject, Injectable } from "../di";
 
+@Injectable()
 export class MiddlewaresService {
-  private middlewares: Middleware[];
+  @Inject(UserMw)
+  private readonly userMw!: UserMw;
 
-  public constructor(options: MwServiceOptions) {
-    this.middlewares = [new UserMw(options), new ActionsMw(options)];
+  @Inject(ActionsMw)
+  private readonly actionsMw!: ActionsMw;
+
+  private middlewares: Middleware[] = [];
+
+  public onApplicationStart() {
+    this.middlewares = [this.userMw, this.actionsMw];
   }
-
-  public async onApplicationBootstrap() {}
 
   public async execute() {
     for (let i = 0; i < this.middlewares.length; i++) {

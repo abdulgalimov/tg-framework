@@ -1,7 +1,6 @@
 import { FrameworkConfig } from "./types";
-import { CONFIG_KEY, diContainer, Provider } from "./di";
+import { CONFIG_KEY, diContainer, Provider, initializeInjects } from "./di";
 import { Telegram } from "./telegram";
-import { initializeInjects } from "./di/inject";
 
 export class TgFactory {
   public static create(frameworkConfig: FrameworkConfig): Telegram {
@@ -12,7 +11,12 @@ export class TgFactory {
 
     const tg = diContainer.resolve<Telegram>(Telegram);
 
-    initializeInjects(tg);
+    const instances = initializeInjects(tg);
+    instances.forEach((instance) => {
+      if ("onApplicationStart" in instance) {
+        instance.onApplicationStart();
+      }
+    });
 
     return tg;
   }

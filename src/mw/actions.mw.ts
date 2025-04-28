@@ -1,24 +1,47 @@
-import type { CallbackQuery, InlineQuery } from '@grammyjs/types';
-import type { ChosenInlineResult } from '@grammyjs/types/inline';
+import type { CallbackQuery, InlineQuery } from "@grammyjs/types";
+import type { ChosenInlineResult } from "@grammyjs/types/inline";
 
-import { BaseMw } from './base.mw';
-import type { Middleware, MwServiceOptions } from './types';
-import { type Context, type ContextAny, getContext } from '../context';
-import type {
+import { BaseMw } from "./base.mw";
+import { type Context, type ContextAny, getContext } from "../context";
+import {
   ActionCore,
   ActionForm,
   ActionInline,
   ActionItemPayload,
+  AllActionsTree,
   Form,
+  FrameworkConfig,
   InlineChosenPayload,
   InlineQueryPayload,
-} from '../types';
+} from "../types";
+import { CONFIG_KEY, Inject, Injectable } from "../di";
+import { FormService } from "../form.service";
+import { ActionsService } from "../actions";
+import { PayloadService } from "../payload";
+import { InlineService } from "../inline.service";
 
 const commandsReg = /^(?<command>\/\w+)(\s+(?<value>.+))?$/;
 
-export class ActionsMw extends BaseMw implements Middleware {
-  public constructor(options: MwServiceOptions) {
-    super(ActionsMw.name, options);
+@Injectable()
+export class ActionsMw extends BaseMw {
+  @Inject(FormService)
+  private readonly formService!: FormService;
+
+  @Inject(ActionsService)
+  private readonly actionsService!: ActionsService;
+
+  @Inject(PayloadService)
+  private readonly payloadService!: PayloadService;
+
+  @Inject(InlineService)
+  private readonly inlineService!: InlineService;
+
+  private readonly actionsTree: AllActionsTree;
+
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+    super(ActionsMw.name);
+
+    this.actionsTree = frameworkConfig.actionsTree;
   }
   public async execute(): Promise<void> {
     const ctx = getContext();
@@ -60,7 +83,7 @@ export class ActionsMw extends BaseMw implements Middleware {
 
     if (commandExec && commandExec.groups) {
       const { command, value } = commandExec.groups;
-      const commandCtx = ctx as Context<{ action: ActionCore['command'] }>;
+      const commandCtx = ctx as Context<{ action: ActionCore["command"] }>;
       commandCtx.action = this.actionsTree.core.command;
 
       commandCtx.payload =
@@ -79,7 +102,10 @@ export class ActionsMw extends BaseMw implements Middleware {
     }
   }
 
-  private async formAction(ctx: Context<{ action: ActionItemPayload }>, form: Form) {
+  private async formAction(
+    ctx: Context<{ action: ActionItemPayload }>,
+    form: Form,
+  ) {
     const { update } = ctx;
 
     ctx.form = form;
@@ -94,7 +120,7 @@ export class ActionsMw extends BaseMw implements Middleware {
 
     if (update.callback_query) {
       const [callbackAction, payload] = this.payloadService.decode(
-        update.callback_query.data || '',
+        update.callback_query.data || "",
       );
 
       if (callbackAction.meta.childOf(action)) {
@@ -110,7 +136,7 @@ export class ActionsMw extends BaseMw implements Middleware {
     if (action.progress) {
       ctx.action = action.progress;
     } else {
-      throw new Error('Invalid formAction.progress');
+      throw new Error("Invalid formAction.progress");
     }
   }
 
@@ -119,12 +145,14 @@ export class ActionsMw extends BaseMw implements Middleware {
     callbackQuery: CallbackQuery,
   ) {
     try {
-      const [action, payload] = this.payloadService.decode(callbackQuery.data || '');
+      const [action, payload] = this.payloadService.decode(
+        callbackQuery.data || "",
+      );
 
       ctx.action = action;
       ctx.payload = payload;
     } catch (error) {
-      this.logger.error('Failed decode payload', error, {
+      this.logger.error("Failed decode payload", error, {
         callbackData: callbackQuery.data,
       });
 
@@ -163,7 +191,9 @@ export class ActionsMw extends BaseMw implements Middleware {
 
     const [inlineData, variables] = findResult;
 
-    const action = this.actionsService.getById<ActionInline>(inlineData.actionId);
+    const action = this.actionsService.getById<ActionInline>(
+      inlineData.actionId,
+    );
     ctx.action = action.select;
     ctx.inline = inlineData;
     ctx.payload = {

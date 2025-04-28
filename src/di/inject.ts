@@ -19,14 +19,18 @@ export function Inject(token?: any) {
   };
 }
 
-export function initializeInjects(instance: any) {
+export function initializeInjects(instance: any): Set<any> {
   const prototype = Object.getPrototypeOf(instance);
 
   const keys = Reflect.getMetadata(INJECT_PROPS, prototype) || [];
 
+  const instances = new Set();
   for (const { key, type } of keys) {
     instance[key] = diContainer.resolve(type);
+    instances.add(instance[key]);
 
-    initializeInjects(instance[key]);
+    initializeInjects(instance[key]).forEach((i: any) => instances.add(i));
   }
+
+  return instances;
 }

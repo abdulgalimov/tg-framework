@@ -44,7 +44,8 @@ export class Telegram {
   @Inject(KeyboardService)
   public readonly keyboard!: KeyboardService;
 
-  private middlewaresService?: MiddlewaresService;
+  @Inject(MiddlewaresService)
+  private middlewaresService!: MiddlewaresService;
 
   private logger = new Logger(Telegram.name);
 
@@ -62,16 +63,6 @@ export class Telegram {
 
   public async init() {
     const { storage, actionsTree } = this.frameworkConfig;
-
-    this.middlewaresService = new MiddlewaresService({
-      storage,
-      actionsTree,
-      apiService: this.api,
-      actionsService: this.actions,
-      payloadService: this.payload,
-      formService: this.form,
-      inlineService: this.inline,
-    });
 
     await this.actions.parse();
 
@@ -100,9 +91,7 @@ export class Telegram {
   private async updateWithContext(update: Update) {
     const ctx = getContext();
 
-    if (this.middlewaresService) {
-      await this.middlewaresService.execute();
-    }
+    await this.middlewaresService.execute();
 
     await this.tryHandler(ctx, 1);
 
