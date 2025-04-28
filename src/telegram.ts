@@ -13,28 +13,38 @@ import { KeyboardService } from "./keyboard.service";
 import { MiddlewaresService } from "./mw";
 import { UpdateService } from "./update.service";
 import { Logger } from "./logger";
-import { LocaleService } from "./locale.service";
+import { CONFIG_KEY, Inject, Injectable } from "./di";
 
+@Injectable()
 export class Telegram {
-  private readonly callService: CallService;
+  @Inject(CallService)
+  public readonly callService!: CallService;
 
-  public readonly actions: ActionsService;
+  @Inject(ActionsService)
+  public readonly actions!: ActionsService;
 
-  private readonly middlewaresService: MiddlewaresService;
+  @Inject(UpdateService)
+  private readonly updateService!: UpdateService;
 
-  private readonly updateService: UpdateService;
+  @Inject(PayloadService)
+  public readonly payload!: PayloadService;
 
-  public readonly payload: PayloadService;
+  @Inject(ApiService)
+  public readonly api!: ApiService;
 
-  public readonly api: ApiService;
+  @Inject(FormService)
+  public readonly form!: FormService;
 
-  public readonly form: FormService;
+  @Inject(ContextService)
+  public readonly context!: ContextService;
 
-  public readonly context: ContextService;
+  @Inject(InlineService)
+  public readonly inline!: InlineService;
 
-  public readonly inline: InlineService;
+  @Inject(KeyboardService)
+  public readonly keyboard!: KeyboardService;
 
-  public readonly keyboard: KeyboardService;
+  private middlewaresService?: MiddlewaresService;
 
   private logger = new Logger(Telegram.name);
 
@@ -42,40 +52,16 @@ export class Telegram {
 
   private _username: string = "";
 
-  public constructor(frameworkConfig: FrameworkConfig) {
-    const { storage, tg, locale, actionsTree, handler, textIcons } =
-      frameworkConfig;
+  public constructor(
+    @Inject(CONFIG_KEY) private readonly frameworkConfig: FrameworkConfig,
+  ) {
+    const { handler } = frameworkConfig;
 
     this.handler = handler;
+  }
 
-    this.callService = new CallService(tg);
-
-    this.actions = new ActionsService(actionsTree, storage);
-
-    this.payload = new PayloadService(this.actions);
-
-    this.api = new ApiService(this.callService);
-
-    const localeService = new LocaleService(locale, textIcons);
-
-    this.context = new ContextService(
-      actionsTree,
-      this.api,
-      localeService,
-      this.payload,
-    );
-
-    this.form = new FormService(
-      this.context,
-      this.actions,
-      this.payload,
-      localeService,
-      storage,
-    );
-
-    this.inline = new InlineService(this.api, storage);
-
-    this.keyboard = new KeyboardService(this.context, this.payload);
+  public async init() {
+    const { storage, actionsTree } = this.frameworkConfig;
 
     this.middlewaresService = new MiddlewaresService({
       storage,
@@ -87,13 +73,9 @@ export class Telegram {
       inlineService: this.inline,
     });
 
-    this.updateService = new UpdateService(this.callService, (update) =>
-      this.updateHandler(update),
-    );
-  }
-
-  public async init() {
     await this.actions.parse();
+
+    this.updateService.setHandler((update) => this.updateHandler(update));
 
     const me = await this.api.getMe({});
     this._username = me.username;
@@ -118,7 +100,9 @@ export class Telegram {
   private async updateWithContext(update: Update) {
     const ctx = getContext();
 
-    await this.middlewaresService.execute();
+    if (this.middlewaresService) {
+      await this.middlewaresService.execute();
+    }
 
     await this.tryHandler(ctx, 1);
 

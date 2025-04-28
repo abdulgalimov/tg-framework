@@ -1,22 +1,22 @@
 import type { Update } from "@grammyjs/types";
 
-import type { CallService } from "./call.service";
+import { CallService } from "./call.service";
 import type { TelegramMethod } from "./types";
 import { Logger } from "./logger";
+import { Inject, Injectable } from "./di";
 
+@Injectable()
 export class UpdateService {
-  private readonly callService: CallService;
-  private readonly handler: (update: Update) => Promise<void>;
+  @Inject(CallService)
+  private readonly callService!: CallService;
+
+  private handler?: (update: Update) => Promise<void>;
 
   private logger = new Logger(UpdateService.name);
 
   private lastUpdateId: number = 0;
 
-  public constructor(
-    callService: CallService,
-    handler: (update: Update) => Promise<void>,
-  ) {
-    this.callService = callService;
+  public setHandler(handler: (update: Update) => Promise<void>) {
     this.handler = handler;
   }
 
@@ -43,7 +43,9 @@ export class UpdateService {
 
     if (response.length) {
       for (let i = 0; i < response.length; i++) {
-        await this.handler(response[i]!);
+        if (this.handler) {
+          await this.handler(response[i]!);
+        }
       }
 
       const lastUpdate = response[response.length - 1]!;

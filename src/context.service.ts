@@ -7,7 +7,7 @@ import type { Message } from "@grammyjs/types/message";
 import { ApiService } from "./api.service";
 import { getContext } from "./context";
 import { CallApiError, TgErrorCodes } from "./errors";
-import type { LocaleService } from "./locale.service";
+import { LocaleService } from "./locale.service";
 import { PayloadService } from "./payload";
 import type {
   AllActionsTree,
@@ -15,20 +15,31 @@ import type {
   AnswerInlineQueryContext,
   EditMessageTextArgs,
   EditMessageTextResult,
+  FrameworkConfig,
   KeyboardArgs,
   ReplyArgsContext,
   ReplyOptions,
   ReplyResultContext,
   SendMessageArgs,
 } from "./types";
+import { CONFIG_KEY, Inject, Injectable } from "./di";
 
+@Injectable()
 export class ContextService {
-  public constructor(
-    private readonly actionsTree: AllActionsTree,
-    private readonly apiService: ApiService,
-    private readonly localeService: LocaleService,
-    private readonly payloadService: PayloadService,
-  ) {}
+  @Inject(LocaleService)
+  private readonly localeService!: LocaleService;
+
+  @Inject(ApiService)
+  private readonly apiService!: ApiService;
+
+  @Inject(PayloadService)
+  private readonly payloadService!: PayloadService;
+
+  private readonly actionsTree: AllActionsTree;
+
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+    this.actionsTree = frameworkConfig.actionsTree;
+  }
 
   public async delete(messageId?: number | number[]): Promise<void> {
     const ctx = getContext();

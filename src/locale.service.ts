@@ -1,6 +1,7 @@
 import { getContext } from "./context";
 import { Logger } from "./logger";
-import { Locale, TextIcons } from "./types";
+import { FrameworkConfig, Locale, TextIcons } from "./types";
+import { CONFIG_KEY, Inject, Injectable } from "./di";
 
 type Options = {
   args?: Record<string, unknown> | null;
@@ -8,6 +9,7 @@ type Options = {
   leftValue?: string | number | null;
 };
 
+@Injectable()
 export class LocaleService {
   private readonly locale: Locale;
 
@@ -15,9 +17,9 @@ export class LocaleService {
 
   private readonly logger: Logger;
 
-  public constructor(locale: Locale, textIcons?: TextIcons) {
-    this.locale = locale;
-    this.textIcons = textIcons || {};
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+    this.locale = frameworkConfig.locale;
+    this.textIcons = frameworkConfig.textIcons || {};
     this.logger = new Logger(LocaleService.name);
   }
 

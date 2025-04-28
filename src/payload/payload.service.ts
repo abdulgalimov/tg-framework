@@ -11,13 +11,16 @@ import type { InferPayloads } from "./schema";
 import { fullKeys, fullValues, shortKeys, shortValues } from "./shorts";
 import type { UnknownPayload } from "./types";
 import { Logger } from "../logger";
+import { Inject, Injectable } from "../di";
 
 const CurrenVersion = "v1";
 
+@Injectable()
 export class PayloadService {
-  private readonly logger = new Logger(PayloadService.name);
+  @Inject(ActionsService)
+  private readonly actionsService!: ActionsService;
 
-  public constructor(private readonly actionsService: ActionsService) {}
+  private readonly logger = new Logger(PayloadService.name);
 
   public parse(
     action: ActionItem,

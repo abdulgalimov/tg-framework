@@ -1,15 +1,18 @@
 import FormData from "form-data";
 
 import { CallApiError } from "./errors";
-import { TelegramConfig } from "./types";
+import { FrameworkConfig, TelegramConfig } from "./types";
+import { CONFIG_KEY, Injectable } from "./di";
+import { Inject } from "./di/inject";
 
+@Injectable()
 export class CallService {
   private readonly telegramConfig: TelegramConfig;
 
   private isTesting: boolean = true;
 
-  public constructor(config: TelegramConfig) {
-    this.telegramConfig = config;
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+    this.telegramConfig = frameworkConfig.tg;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -12,8 +12,6 @@ export abstract class BaseMw implements Middleware {
 
   protected readonly storage: DataStorage;
 
-  protected readonly apiService: ApiService;
-
   protected readonly formService: FormService;
 
   protected readonly actionsService: ActionsService;
@@ -26,7 +24,6 @@ export abstract class BaseMw implements Middleware {
 
   protected constructor(name: string, options: MwServiceOptions) {
     this.actionsTree = options.actionsTree;
-    this.apiService = options.apiService;
     this.formService = options.formService;
     this.actionsService = options.actionsService;
     this.payloadService = options.payloadService;

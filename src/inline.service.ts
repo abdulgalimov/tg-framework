@@ -1,19 +1,26 @@
-import type { ApiService } from "./api.service";
+import { ApiService } from "./api.service";
 import { getContext } from "./context";
 import type {
   CreateInlineOptions,
   InlineData,
   InlineExtraOptions,
   DataStorage,
+  FrameworkConfig,
 } from "./types";
+import { CONFIG_KEY, Inject, Injectable } from "./di";
 
 const inlineReg = /^(?<query>\w+)(\s+(?<variables>.+))?/;
 
+@Injectable()
 export class InlineService {
-  public constructor(
-    private readonly apiService: ApiService,
-    private readonly storage: DataStorage,
-  ) {}
+  @Inject(ApiService)
+  private readonly apiService!: ApiService;
+
+  private readonly storage: DataStorage;
+
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+    this.storage = frameworkConfig.storage;
+  }
 
   public async create<Extra extends InlineExtraOptions = undefined>(
     options: CreateInlineOptions<Extra>,

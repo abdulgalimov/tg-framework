@@ -10,14 +10,17 @@ import {
   type SwitchButtonsOptions,
 } from "./types";
 import { Icons } from "./types/icons";
+import { Inject, Injectable } from "./di";
 
+Injectable();
 export class KeyboardService {
-  public readonly maxButtons: number = 7;
+  @Inject(ContextService)
+  private readonly contextService!: ContextService;
 
-  public constructor(
-    private readonly contextService: ContextService,
-    private readonly payloadService: PayloadService,
-  ) {}
+  @Inject(PayloadService)
+  private readonly payloadService!: PayloadService;
+
+  public readonly maxButtons: number = 7;
 
   public async confirmMenu(options: ConfirmContextOptions) {
     const { action, text, yesLabel, noLabel } = options;

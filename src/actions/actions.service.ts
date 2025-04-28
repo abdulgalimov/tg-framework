@@ -3,8 +3,10 @@ import {
   type ActionItem,
   type AllActionsTree,
   PayloadsField,
+  FrameworkConfig,
 } from "../types";
 import { ActionMeta } from "./meta";
+import { CONFIG_KEY, Inject, Injectable } from "../di";
 
 const ActionItemSystemKeys = [PayloadsField];
 
@@ -12,13 +14,18 @@ type IdsMap = Record<string, number>;
 
 type ParsedData = Record<string, unknown>;
 
+@Injectable()
 export class ActionsService {
+  private readonly actionsTree: AllActionsTree;
+
+  private readonly storage: DataStorage;
+
   private readonly byId: Record<number, ActionItem> = {};
 
-  public constructor(
-    private readonly actionsTree: AllActionsTree,
-    private readonly storage: DataStorage,
-  ) {}
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+    this.actionsTree = frameworkConfig.actionsTree;
+    this.storage = frameworkConfig.storage;
+  }
 
   private async getIds(actionsList: string[]): Promise<IdsMap> {
     let savedMap = await this.storage.getValue<IdsMap>("actions");
