@@ -1,12 +1,26 @@
 {
   "name": "@abdulgalimov/tg-framework",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "author": "Zaur Abdulgalimov",
   "description": "Telegram bot framework",
   "homepage": "https://github.com/abdulgalimov/tg-framework",
-  "license": "",
-  "repository": "https://github.com/abdulgalimov/tg-framework",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abdulgalimov/tg-framework.git"
+  },
+  "bugs": {
+    "url": "https://github.com/abdulgalimov/tg-framework/issues"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "framework",
+    "typescript",
+    "grammy",
+    "telegram-bot"
+  ],
   "main": "./dist/esm/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",

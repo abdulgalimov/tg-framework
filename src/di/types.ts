@@ -21,3 +21,12 @@ export type InjectProp<T> = {
   type: any;
   options?: InjectOptions<T>;
 };
+
+export enum Scopes {
+  Default = "default",
+  Transient = "transient",
+}
+
+export type RegisterOptions = {
+  scope: Scopes;
+};

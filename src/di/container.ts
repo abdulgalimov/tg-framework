@@ -1,4 +1,11 @@
-import { InjectOptions, InjectProp, Provider, UpdateTarget } from "./types";
+import {
+  InjectOptions,
+  InjectProp,
+  Provider,
+  RegisterOptions,
+  Scopes,
+  UpdateTarget,
+} from "./types";
 import { getProviderName } from "./utils";
 import { LogService } from "../types";
 import {
@@ -7,15 +14,6 @@ import {
   LOGGER_TOKEN,
   UPDATE_TOKEN,
 } from "./tokens";
-
-export enum Scopes {
-  Default = "default",
-  Transient = "transient",
-}
-
-type RegisterOptions = {
-  scope: Scopes;
-};
 
 const defaultRegisterOptions: RegisterOptions = {
   scope: Scopes.Default,
