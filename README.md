@@ -16,9 +16,15 @@ yarn add @abdulgalimov/tg-framework
 ```
 ---
 
-## 📂 Примеры
+## 📂 Examples
 
 - [Example: sample bot](https://github.com/abdulgalimov/tg-bot-example)
+
+---
+
+## 🛠️ Support
+
+- [Telegram](https://t.me/tg_framework)
 
 ---
 
