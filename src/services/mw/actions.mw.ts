@@ -10,11 +10,10 @@ import {
   ActionItemPayload,
   AllActionsTree,
   Form,
-  FrameworkOptions,
   InlineChosenPayload,
   InlineQueryPayload,
 } from "../../types";
-import { CONFIG_KEY, Inject, Injectable } from "../../di";
+import { ACTIONS_TREE_EXT, Inject, Injectable } from "../../di";
 import { FormService } from "../form.service";
 import { ActionsService } from "../actions";
 import { PayloadService } from "../payload";
@@ -36,12 +35,11 @@ export class ActionsMw extends BaseMw {
   @Inject(InlineService)
   private readonly inlineService!: InlineService;
 
-  private readonly actionsTree: AllActionsTree;
+  @Inject(ACTIONS_TREE_EXT)
+  private readonly actionsTree!: AllActionsTree;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
+  public constructor() {
     super(ActionsMw.name);
-
-    this.actionsTree = frameworkConfig.actionsTree;
   }
   public async execute(): Promise<void> {
     const ctx = getContext();

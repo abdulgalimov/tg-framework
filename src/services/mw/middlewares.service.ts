@@ -2,9 +2,10 @@ import { ActionsMw } from "./actions.mw";
 import type { Middleware } from "./types";
 import { UserMw } from "./user.mw";
 import { Inject, Injectable } from "../../di";
+import { OnApplicationStart } from "../../types";
 
 @Injectable()
-export class MiddlewaresService {
+export class MiddlewaresService implements OnApplicationStart {
   @Inject(UserMw)
   private readonly userMw!: UserMw;
 

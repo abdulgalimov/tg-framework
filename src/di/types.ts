@@ -1,10 +1,3 @@
-export const INJECTABLE_KEY = Symbol("INJECTABLE_KEY");
-export const INJECT_PROPS = Symbol("INJECT_PROPS");
-export const INJECT_ARGS = Symbol("INJECT_ARGS");
-export const CONFIG_KEY = Symbol("CONFIG_KEY");
-export const UPDATE_KEY = Symbol("UPDATE_KEY");
-export const ENTRY_SERVICE_KEY = Symbol("ENTRY_SERVICE_KEY");
-
 export type FactoryProvider<T = any> = {
   useFactory: (...args: any[]) => T;
   inject?: any[];
@@ -17,4 +10,14 @@ export type Provider<T = any> =
 export type UpdateTarget = {
   target: any;
   key: string;
+};
+
+export type InjectOptions<T> = {
+  properties?: Partial<Record<keyof T, any>>;
+};
+
+export type InjectProp<T> = {
+  key: string;
+  type: any;
+  options?: InjectOptions<T>;
 };

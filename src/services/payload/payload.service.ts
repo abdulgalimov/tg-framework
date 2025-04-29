@@ -6,12 +6,12 @@ import {
   ActionItem,
   ActionItemPayload,
   ActionItemWithoutPayload,
+  LogService,
 } from "../../types";
 import type { InferPayloads } from "./schema";
 import { fullKeys, fullValues, shortKeys, shortValues } from "./shorts";
 import type { UnknownPayload } from "./types";
-import { Logger } from "../../logger";
-import { Inject, Injectable } from "../../di";
+import { Inject, Injectable, LOGGER_TOKEN } from "../../di";
 
 const CurrenVersion = "v1";
 
@@ -20,7 +20,12 @@ export class PayloadService {
   @Inject(ActionsService)
   private readonly actionsService!: ActionsService;
 
-  private readonly logger = new Logger(PayloadService.name);
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: PayloadService.name,
+    },
+  })
+  private readonly logger!: LogService;
 
   public parse(
     action: ActionItem,

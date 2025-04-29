@@ -9,12 +9,11 @@ import type {
   ActionForm,
   CreateFormOptions,
   Form,
+  LogService,
   ReplyArgsContext,
-  DataStorage,
-  FrameworkOptions,
+  StorageServiceExternal,
 } from "../types";
-import { Logger } from "../logger";
-import { CONFIG_KEY, Inject } from "../di";
+import { Inject, LOGGER_TOKEN, STORAGE_SERVICE_EXT } from "../di";
 
 export class FormService {
   // Delete from history the messages entered by the user during the token search process.
@@ -32,13 +31,17 @@ export class FormService {
   @Inject(LocaleService)
   private readonly localeService!: LocaleService;
 
-  private readonly storage: DataStorage;
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: FormService.name,
+    },
+  })
+  private readonly logger!: LogService;
 
-  private readonly logger = new Logger(FormService.name);
+  @Inject(STORAGE_SERVICE_EXT)
+  private readonly storage!: StorageServiceExternal;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
-    this.storage = frameworkConfig.storage;
-  }
+  public constructor() {}
 
   public find(userId: number): Promise<Form | null> {
     return this.storage.getValue(`user_form_${userId}`);

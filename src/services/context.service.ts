@@ -15,14 +15,13 @@ import type {
   AnswerInlineQueryContext,
   EditMessageTextArgs,
   EditMessageTextResult,
-  FrameworkOptions,
   KeyboardArgs,
   ReplyArgsContext,
   ReplyOptions,
   ReplyResultContext,
   SendMessageArgs,
 } from "../types";
-import { CONFIG_KEY, Inject, Injectable } from "../di";
+import { ACTIONS_TREE_EXT, Inject, Injectable } from "../di";
 
 @Injectable()
 export class ContextService {
@@ -35,11 +34,10 @@ export class ContextService {
   @Inject(PayloadService)
   private readonly payloadService!: PayloadService;
 
-  private readonly actionsTree: AllActionsTree;
+  @Inject(ACTIONS_TREE_EXT)
+  private readonly actionsTree!: AllActionsTree;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
-    this.actionsTree = frameworkConfig.actionsTree;
-  }
+  public constructor() {}
 
   public async delete(messageId?: number | number[]): Promise<void> {
     const ctx = getContext();

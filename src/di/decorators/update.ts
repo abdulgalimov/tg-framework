@@ -1,9 +1,7 @@
-import { UPDATE_KEY } from "../types";
-import * as console from "node:console";
+import { UPDATE_TOKEN } from "../tokens";
 
 export function Update(): MethodDecorator {
   return (target, key, descriptor: TypedPropertyDescriptor<any>) => {
-    console.log("Update", key);
-    Reflect.defineMetadata(UPDATE_KEY, key, target);
+    Reflect.defineMetadata(UPDATE_TOKEN, key, target);
   };
 }

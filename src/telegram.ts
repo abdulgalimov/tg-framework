@@ -1,26 +1,25 @@
 import type { Update } from "@grammyjs/types";
 
 import {
-  UpdateService,
-  MiddlewaresService,
-  KeyboardService,
-  InlineService,
-  ContextService,
   ActionsService,
-  CallService,
-  PayloadService,
   ApiService,
+  CallService,
+  ContextService,
   FormService,
+  InlineService,
+  KeyboardService,
+  MiddlewaresService,
+  PayloadService,
+  UpdateService,
 } from "./services";
-import { FrameworkOptions, UpdateResult } from "./types";
+import { LogService, UpdateResult } from "./types";
 import { type ContextAny, createContext, getContext } from "./context";
-import { Logger } from "./logger";
 import {
-  CONFIG_KEY,
   diContainer,
-  ENTRY_SERVICE_KEY,
+  ENTRY_SERVICE_EXT,
   Inject,
   Injectable,
+  LOGGER_TOKEN,
 } from "./di";
 
 @Injectable()
@@ -55,16 +54,17 @@ export class Telegram<EntryService> {
   @Inject(MiddlewaresService)
   private readonly middlewaresService!: MiddlewaresService;
 
-  @Inject(ENTRY_SERVICE_KEY)
+  @Inject(ENTRY_SERVICE_EXT)
   public readonly entryService!: EntryService;
 
-  private logger = new Logger(Telegram.name);
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: Telegram.name,
+    },
+  })
+  private readonly logger!: LogService;
 
   private _username: string = "";
-
-  public constructor(
-    @Inject(CONFIG_KEY) private readonly frameworkConfig: FrameworkOptions,
-  ) {}
 
   public async init() {
     await this.actions.parse();

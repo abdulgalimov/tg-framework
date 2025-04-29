@@ -1,12 +1,16 @@
 import {
-  DataStorage,
   type ActionItem,
   type AllActionsTree,
   PayloadsField,
-  FrameworkOptions,
+  StorageServiceExternal,
 } from "../../types";
 import { ActionMeta } from "./meta";
-import { CONFIG_KEY, Inject, Injectable } from "../../di";
+import {
+  ACTIONS_TREE_EXT,
+  Inject,
+  Injectable,
+  STORAGE_SERVICE_EXT,
+} from "../../di";
 
 const ActionItemSystemKeys = [PayloadsField];
 
@@ -16,16 +20,13 @@ type ParsedData = Record<string, unknown>;
 
 @Injectable()
 export class ActionsService {
-  private readonly actionsTree: AllActionsTree;
+  @Inject(ACTIONS_TREE_EXT)
+  private readonly actionsTree!: AllActionsTree;
 
-  private readonly storage: DataStorage;
+  @Inject(STORAGE_SERVICE_EXT)
+  private readonly storage!: StorageServiceExternal;
 
   private readonly byId: Record<number, ActionItem> = {};
-
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
-    this.actionsTree = frameworkConfig.actionsTree;
-    this.storage = frameworkConfig.storage;
-  }
 
   private async getIds(actionsList: string[]): Promise<IdsMap> {
     let savedMap = await this.storage.getValue<IdsMap>("actions");

@@ -1,16 +1,15 @@
 import { getContext } from "../../context";
 import { BaseMw } from "./base.mw";
-import { DataStorage, FrameworkOptions, User } from "../../types";
-import { CONFIG_KEY, Inject, Injectable } from "../../di";
+import { StorageServiceExternal, User } from "../../types";
+import { Inject, Injectable, STORAGE_SERVICE_EXT } from "../../di";
 
 @Injectable()
 export class UserMw extends BaseMw {
-  private readonly storage: DataStorage;
+  @Inject(STORAGE_SERVICE_EXT)
+  private readonly storage!: StorageServiceExternal;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
+  public constructor() {
     super(UserMw.name);
-
-    this.storage = frameworkConfig.storage;
   }
   public async execute(): Promise<void> {
     const ctx = getContext();

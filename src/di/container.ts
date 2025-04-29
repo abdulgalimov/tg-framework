@@ -1,9 +1,15 @@
-import { INJECT_ARGS, Provider, UPDATE_KEY, UpdateTarget } from "./types";
-import { Logger } from "../logger";
+import { InjectOptions, InjectProp, Provider, UpdateTarget } from "./types";
 import { getProviderName } from "./utils";
+import { LogService } from "../types";
+import {
+  INJECT_ARGS_TOKEN,
+  INJECT_PROPS_TOKEN,
+  LOGGER_TOKEN,
+  UPDATE_TOKEN,
+} from "./tokens";
 
 export class DiContainer {
-  private readonly logger = new Logger("DI");
+  private logger?: LogService;
 
   private services = new Map<any, any>();
   private providers = new Map<any, Provider>();
@@ -15,14 +21,24 @@ export class DiContainer {
   }
 
   public register<T>(token: any, provider: Provider<T>) {
-    this.logger.debug(
-      `register ${getProviderName(token)} => ${getProviderName(provider)}`,
-    );
+    if (this.logger) {
+      this.logger.debug(
+        `register ${getProviderName(token)} => ${getProviderName(provider)}`,
+      );
+    }
 
     this.providers.set(token, provider);
+
+    if (token === LOGGER_TOKEN) {
+      this.logger = this.resolve<LogService>(LOGGER_TOKEN, {
+        properties: {
+          name: "di",
+        },
+      });
+    }
   }
 
-  resolve<T>(token: any): T {
+  resolve<T>(token: any, options?: InjectOptions<T>): T {
     if (this.services.has(token)) {
       return this.services.get(token);
     }
@@ -36,7 +52,7 @@ export class DiContainer {
         Reflect.getMetadata("design:paramtypes", provider) || [];
 
       const injectTokens: Map<number, any> =
-        Reflect.getMetadata(INJECT_ARGS, provider) || new Map();
+        Reflect.getMetadata(INJECT_ARGS_TOKEN, provider) || new Map();
 
       const injections = dependencies.map((type: any, index: number) => {
         const injectToken = injectTokens.get(index) || type;
@@ -53,8 +69,15 @@ export class DiContainer {
       throw new Error(`Cannot resolve provider for token: ${token.toString()}`);
     }
 
+    const properties = options?.properties;
+    if (properties) {
+      for (let key in properties) {
+        instance[key] = properties[key];
+      }
+    }
+
     const prototype = Object.getPrototypeOf(instance);
-    const updateKey = Reflect.getMetadata(UPDATE_KEY, prototype);
+    const updateKey = Reflect.getMetadata(UPDATE_TOKEN, prototype);
 
     if (updateKey) {
       this.updateTarget = {
@@ -65,6 +88,25 @@ export class DiContainer {
 
     this.services.set(token, instance);
     return instance;
+  }
+
+  public initializeInjects(instance: any): Set<any> {
+    const prototype = Object.getPrototypeOf(instance);
+
+    const keys: InjectProp<any>[] =
+      Reflect.getMetadata(INJECT_PROPS_TOKEN, prototype) || [];
+
+    const instances = new Set();
+    for (const { key, type, options } of keys) {
+      instance[key] = diContainer.resolve(type, options);
+      instances.add(instance[key]);
+
+      this.initializeInjects(instance[key]).forEach((i: any) =>
+        instances.add(i),
+      );
+    }
+
+    return instances;
   }
 }
 

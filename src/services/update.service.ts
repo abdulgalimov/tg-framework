@@ -1,18 +1,22 @@
 import type { Update } from "@grammyjs/types";
 
 import { CallService } from "./call.service";
-import type { TelegramMethod } from "../types";
-import { Logger } from "../logger";
-import { Inject, Injectable } from "../di";
+import type { LogService, TelegramMethod } from "../types";
+import { Inject, Injectable, LOGGER_TOKEN } from "../di";
 
 @Injectable()
 export class UpdateService {
   @Inject(CallService)
   private readonly callService!: CallService;
 
-  private handler?: (update: Update) => Promise<void>;
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: UpdateService.name,
+    },
+  })
+  private readonly logger!: LogService;
 
-  private logger = new Logger(UpdateService.name);
+  private handler?: (update: Update) => Promise<void>;
 
   private lastUpdateId: number = 0;
 
