@@ -1,7 +1,7 @@
 import { type InlineKeyboardMarkup } from "@grammyjs/types/markup";
 
 import { ActionsService } from "./actions";
-import { getContext } from "./context";
+import { getContext } from "../context";
 import { ContextService } from "./context.service";
 import { LocaleService } from "./locale.service";
 import { PayloadService } from "./payload";
@@ -12,9 +12,9 @@ import type {
   ReplyArgsContext,
   DataStorage,
   FrameworkConfig,
-} from "./types";
-import { Logger } from "./logger";
-import { CONFIG_KEY, Inject } from "./di";
+} from "../types";
+import { Logger } from "../logger";
+import { CONFIG_KEY, Inject } from "../di";
 
 export class FormService {
   // Delete from history the messages entered by the user during the token search process.

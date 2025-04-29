@@ -8,9 +8,9 @@ import {
   type PagingOptions,
   SwitchButtonMode,
   type SwitchButtonsOptions,
-} from "./types";
-import { Icons } from "./types/icons";
-import { Inject, Injectable } from "./di";
+} from "../types";
+import { Icons } from "../types/icons";
+import { Inject, Injectable } from "../di";
 
 Injectable();
 export class KeyboardService {

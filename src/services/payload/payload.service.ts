@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 
 import { ActionsService } from "../actions";
-import { type Context, getContext } from "../context";
+import { type Context, getContext } from "../../context";
 import {
   ActionItem,
   ActionItemPayload,
   ActionItemWithoutPayload,
-} from "../types";
+} from "../../types";
 import type { InferPayloads } from "./schema";
 import { fullKeys, fullValues, shortKeys, shortValues } from "./shorts";
 import type { UnknownPayload } from "./types";
-import { Logger } from "../logger";
-import { Inject, Injectable } from "../di";
+import { Logger } from "../../logger";
+import { Inject, Injectable } from "../../di";
 
 const CurrenVersion = "v1";
 

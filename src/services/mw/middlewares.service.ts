@@ -1,7 +1,7 @@
 import { ActionsMw } from "./actions.mw";
 import type { Middleware } from "./types";
 import { UserMw } from "./user.mw";
-import { Inject, Injectable } from "../di";
+import { Inject, Injectable } from "../../di";
 
 @Injectable()
 export class MiddlewaresService {

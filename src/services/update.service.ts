@@ -1,9 +1,9 @@
 import type { Update } from "@grammyjs/types";
 
 import { CallService } from "./call.service";
-import type { TelegramMethod } from "./types";
-import { Logger } from "./logger";
-import { Inject, Injectable } from "./di";
+import type { TelegramMethod } from "../types";
+import { Logger } from "../logger";
+import { Inject, Injectable } from "../di";
 
 @Injectable()
 export class UpdateService {

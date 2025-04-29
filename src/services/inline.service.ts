@@ -1,13 +1,13 @@
 import { ApiService } from "./api.service";
-import { getContext } from "./context";
+import { getContext } from "../context";
 import type {
   CreateInlineOptions,
   InlineData,
   InlineExtraOptions,
   DataStorage,
   FrameworkConfig,
-} from "./types";
-import { CONFIG_KEY, Inject, Injectable } from "./di";
+} from "../types";
+import { CONFIG_KEY, Inject, Injectable } from "../di";
 
 const inlineReg = /^(?<query>\w+)(\s+(?<variables>.+))?/;
 

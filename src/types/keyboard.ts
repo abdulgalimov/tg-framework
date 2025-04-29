@@ -1,5 +1,5 @@
-import type { ActionDelete, ActionItemPayload } from './actions';
-import type { InferPayloads } from '../payload';
+import type { ActionDelete, ActionItemPayload } from "./actions";
+import type { InferPayloads } from "../services/payload";
 
 export type ConfirmContextOptions = {
   action: ActionDelete;
@@ -20,8 +20,8 @@ type SwitchButton<Payload> = {
 };
 
 export enum SwitchButtonMode {
-  Select = 'select',
-  Radio = 'radio',
+  Select = "select",
+  Radio = "radio",
 }
 
 export type SwitchButtonsOptions<

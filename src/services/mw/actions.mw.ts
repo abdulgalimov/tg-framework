@@ -2,7 +2,7 @@ import type { CallbackQuery, InlineQuery } from "@grammyjs/types";
 import type { ChosenInlineResult } from "@grammyjs/types/inline";
 
 import { BaseMw } from "./base.mw";
-import { type Context, type ContextAny, getContext } from "../context";
+import { type Context, type ContextAny, getContext } from "../../context";
 import {
   ActionCore,
   ActionForm,
@@ -13,8 +13,8 @@ import {
   FrameworkConfig,
   InlineChosenPayload,
   InlineQueryPayload,
-} from "../types";
-import { CONFIG_KEY, Inject, Injectable } from "../di";
+} from "../../types";
+import { CONFIG_KEY, Inject, Injectable } from "../../di";
 import { FormService } from "../form.service";
 import { ActionsService } from "../actions";
 import { PayloadService } from "../payload";

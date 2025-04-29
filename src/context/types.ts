@@ -2,7 +2,7 @@
 
 import type { User as TgFrom, Update } from "@grammyjs/types";
 
-import type { InferPayloads, UnknownPayload } from "../payload";
+import type { InferPayloads, UnknownPayload } from "../services/payload";
 import type {
   ActionItem,
   ActionItemPayload,

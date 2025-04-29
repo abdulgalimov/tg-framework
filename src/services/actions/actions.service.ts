@@ -4,9 +4,9 @@ import {
   type AllActionsTree,
   PayloadsField,
   FrameworkConfig,
-} from "../types";
+} from "../../types";
 import { ActionMeta } from "./meta";
-import { CONFIG_KEY, Inject, Injectable } from "../di";
+import { CONFIG_KEY, Inject, Injectable } from "../../di";
 
 const ActionItemSystemKeys = [PayloadsField];
 

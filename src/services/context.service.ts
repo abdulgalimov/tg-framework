@@ -5,8 +5,8 @@ import type {
 import type { Message } from "@grammyjs/types/message";
 
 import { ApiService } from "./api.service";
-import { getContext } from "./context";
-import { CallApiError, TgErrorCodes } from "./errors";
+import { getContext } from "../context";
+import { CallApiError, TgErrorCodes } from "../errors";
 import { LocaleService } from "./locale.service";
 import { PayloadService } from "./payload";
 import type {
@@ -21,8 +21,8 @@ import type {
   ReplyOptions,
   ReplyResultContext,
   SendMessageArgs,
-} from "./types";
-import { CONFIG_KEY, Inject, Injectable } from "./di";
+} from "../types";
+import { CONFIG_KEY, Inject, Injectable } from "../di";
 
 @Injectable()
 export class ContextService {

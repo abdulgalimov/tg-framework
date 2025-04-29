@@ -3,7 +3,7 @@ import {
   ActionItemPayload,
   ActionItemWithoutPayload,
   UpdateResult,
-} from "../types";
+} from "../../types";
 import { InferPayloads, UnknownPayload } from "../payload";
 
 export function redirect<A extends ActionItemPayload>(

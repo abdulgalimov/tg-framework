@@ -1,7 +1,7 @@
-import { getContext } from "./context";
-import { Logger } from "./logger";
-import { FrameworkConfig, Locale, TextIcons } from "./types";
-import { CONFIG_KEY, Inject, Injectable } from "./di";
+import { getContext } from "../context";
+import { Logger } from "../logger";
+import { FrameworkConfig, Locale, TextIcons } from "../types";
+import { CONFIG_KEY, Inject, Injectable } from "../di";
 
 type Options = {
   args?: Record<string, unknown> | null;

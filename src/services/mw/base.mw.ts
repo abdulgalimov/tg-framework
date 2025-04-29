@@ -1,5 +1,5 @@
 import type { Middleware } from "./types";
-import { Logger } from "../logger";
+import { Logger } from "../../logger";
 
 export abstract class BaseMw implements Middleware {
   protected logger: Logger;

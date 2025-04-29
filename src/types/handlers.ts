@@ -1,5 +1,5 @@
 import { ActionItem } from "./actions";
-import { UnknownPayload } from "../payload";
+import { UnknownPayload } from "../services/payload";
 
 export type UpdateResult = {
   redirect?: {

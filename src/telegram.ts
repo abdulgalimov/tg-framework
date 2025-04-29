@@ -1,17 +1,19 @@
 import type { Update } from "@grammyjs/types";
 
-import { CallService } from "./call.service";
-import { PayloadService } from "./payload";
+import {
+  UpdateService,
+  MiddlewaresService,
+  KeyboardService,
+  InlineService,
+  ContextService,
+  ActionsService,
+  CallService,
+  PayloadService,
+  ApiService,
+  FormService,
+} from "./services";
 import { FrameworkConfig, UpdateHandler, UpdateResult } from "./types";
-import { ActionsService } from "./actions";
-import { ApiService } from "./api.service";
 import { type ContextAny, createContext, getContext } from "./context";
-import { ContextService } from "./context.service";
-import { FormService } from "./form.service";
-import { InlineService } from "./inline.service";
-import { KeyboardService } from "./keyboard.service";
-import { MiddlewaresService } from "./mw";
-import { UpdateService } from "./update.service";
 import { Logger } from "./logger";
 import { CONFIG_KEY, Inject, Injectable } from "./di";
 

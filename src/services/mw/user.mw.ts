@@ -1,7 +1,7 @@
-import { getContext } from "../context";
+import { getContext } from "../../context";
 import { BaseMw } from "./base.mw";
-import { DataStorage, FrameworkConfig, User } from "../types";
-import { CONFIG_KEY, Inject, Injectable } from "../di";
+import { DataStorage, FrameworkConfig, User } from "../../types";
+import { CONFIG_KEY, Inject, Injectable } from "../../di";
 
 @Injectable()
 export class UserMw extends BaseMw {

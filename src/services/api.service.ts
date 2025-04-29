@@ -6,9 +6,8 @@ import type {
   SendFile,
   SendPhotoArgs,
   TelegramMethod,
-} from "./types";
-import { Injectable } from "./di";
-import { Inject } from "./di/inject";
+} from "../types";
+import { Inject, Injectable } from "../di";
 
 @Injectable()
 export class ApiService {
