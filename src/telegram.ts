@@ -3,11 +3,7 @@ import type { Update } from "@grammyjs/types";
 import {
   ActionsService,
   ApiService,
-  CallService,
   ContextService,
-  FormService,
-  InlineService,
-  KeyboardService,
   MiddlewaresService,
   PayloadService,
   UpdateService,
@@ -25,8 +21,12 @@ import {
 
 @Injectable()
 export class Telegram<EntryService> {
-  @Inject(CallService)
-  private readonly callService!: CallService;
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: Telegram.name,
+    },
+  })
+  private readonly logger!: LogService;
 
   @Inject(ActionsService)
   private readonly actions!: ActionsService;
@@ -40,30 +40,14 @@ export class Telegram<EntryService> {
   @Inject(ApiService)
   private readonly api!: ApiService;
 
-  @Inject(FormService)
-  private readonly form!: FormService;
-
   @Inject(ContextService)
   private readonly context!: ContextService;
-
-  @Inject(InlineService)
-  private readonly inline!: InlineService;
-
-  @Inject(KeyboardService)
-  private readonly keyboard!: KeyboardService;
 
   @Inject(MiddlewaresService)
   private readonly middlewaresService!: MiddlewaresService;
 
   @Inject(ENTRY_SERVICE_EXT)
   public readonly entryService!: EntryService;
-
-  @Inject<LogService>(LOGGER_TOKEN, {
-    properties: {
-      name: Telegram.name,
-    },
-  })
-  private readonly logger!: LogService;
 
   @Inject(ACTIONS_TREE_EXT)
   private readonly actionsTree!: AllActionsTree;
