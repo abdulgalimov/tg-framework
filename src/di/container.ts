@@ -8,11 +8,27 @@ import {
   UPDATE_TOKEN,
 } from "./tokens";
 
+export enum Scopes {
+  Default = "default",
+  Transient = "transient",
+}
+
+type RegisterOptions = {
+  scope: Scopes;
+};
+
+const defaultRegisterOptions: RegisterOptions = {
+  scope: Scopes.Default,
+};
+
 export class DiContainer {
   private logger?: LogService;
 
   private services = new Map<any, any>();
-  private providers = new Map<any, Provider>();
+  private providers = new Map<
+    any,
+    { provider: Provider; options: RegisterOptions }
+  >();
 
   private updateTarget: UpdateTarget | null = null;
 
@@ -20,14 +36,21 @@ export class DiContainer {
     return this.updateTarget;
   }
 
-  public register<T>(token: any, provider: Provider<T>) {
+  public register<T>(
+    token: any,
+    provider: Provider<T>,
+    options?: RegisterOptions,
+  ) {
     if (this.logger) {
       this.logger.debug(
         `register ${getProviderName(token)} => ${getProviderName(provider)}`,
       );
     }
 
-    this.providers.set(token, provider);
+    this.providers.set(token, {
+      provider,
+      options: options || defaultRegisterOptions,
+    });
 
     if (token === LOGGER_TOKEN) {
       this.logger = this.resolve<LogService>(LOGGER_TOKEN, {
@@ -38,12 +61,15 @@ export class DiContainer {
     }
   }
 
-  resolve<T>(token: any, options?: InjectOptions<T>): T {
-    if (this.services.has(token)) {
+  resolve<T>(token: any, injectOptions?: InjectOptions<T>): T {
+    const { provider, options } = this.providers.get(token) || {
+      provider: token,
+      options: defaultRegisterOptions,
+    };
+
+    if (this.services.has(token) && options.scope === Scopes.Default) {
       return this.services.get(token);
     }
-
-    const provider = this.providers.get(token) || token;
 
     let instance: T;
 
@@ -69,7 +95,7 @@ export class DiContainer {
       throw new Error(`Cannot resolve provider for token: ${token.toString()}`);
     }
 
-    const properties = options?.properties;
+    const properties = injectOptions?.properties;
     if (properties) {
       for (let key in properties) {
         instance[key] = properties[key];

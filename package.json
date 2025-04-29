@@ -23,7 +23,7 @@
     "dev": "ts-node examples/sample-bot/index.ts"
   },
   "devDependencies": {
-    "@grammyjs/types": "^3.19.0",
+    "@grammyjs/types": "^3.20.0",
     "@types/node": "^22.13.11",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",

@@ -71,7 +71,7 @@ export class Telegram<EntryService> {
 
     this.updateService.setHandler((update) => this.updateHandler(update));
 
-    const me = await this.api.getMe({});
+    const me = await this.api.methods.getMe({});
     this._username = me.username;
 
     this.updateService.startLongpoll().catch(this.logger.error);
@@ -96,7 +96,11 @@ export class Telegram<EntryService> {
 
     await this.middlewaresService.execute();
 
-    await this.tryHandler(ctx, 1);
+    try {
+      await this.tryHandler(ctx, 1);
+    } catch (error) {
+      this.logger.error("Update handler", error);
+    }
 
     if (update.callback_query && !ctx.flags.callbackAnswered) {
       await this.context.answerCallbackQuery();

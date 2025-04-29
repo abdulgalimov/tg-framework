@@ -60,12 +60,12 @@ export class ContextService {
     ctx.flags.messageDeleted = true;
 
     if (typeof deleteMessageId === "number") {
-      await this.apiService.deleteMessage({
+      await this.apiService.methods.deleteMessage({
         chat_id: chatId,
         message_id: deleteMessageId,
       });
     } else {
-      await this.apiService.deleteMessages({
+      await this.apiService.methods.deleteMessages({
         chat_id: chatId,
         message_ids: deleteMessageId,
       });
@@ -83,7 +83,7 @@ export class ContextService {
       throw new Error("Invalid chatId in context:send");
     }
 
-    await this.apiService.sendMessage({
+    await this.apiService.methods.sendMessage({
       ...args,
       chat_id: chatId,
     });
@@ -128,7 +128,7 @@ export class ContextService {
 
     if (callbackMessageId && !sendMode && !ctx.flags.messageDeleted) {
       try {
-        return (await this.apiService.editMessageText({
+        return (await this.apiService.methods.editMessageText({
           ...args,
           chat_id: chatId,
           message_id: callbackMessageId,
@@ -154,7 +154,7 @@ export class ContextService {
           message_id: messageId,
         };
       }
-      return await this.apiService.sendMessage(sendMessageArgs);
+      return await this.apiService.methods.sendMessage(sendMessageArgs);
     }
   }
 
@@ -190,7 +190,7 @@ export class ContextService {
       throw new Error("Callback answered");
     }
 
-    const result = await this.apiService.answerCallbackQuery({
+    const result = await this.apiService.methods.answerCallbackQuery({
       ...args,
       callback_query_id: ctx.update.callback_query.id,
     });
@@ -211,7 +211,7 @@ export class ContextService {
       throw new Error("Inline answered");
     }
 
-    const result = await this.apiService.answerInlineQuery({
+    const result = await this.apiService.methods.answerInlineQuery({
       cache_time: 1,
       ...args,
       inline_query_id: ctx.update.inline_query.id,

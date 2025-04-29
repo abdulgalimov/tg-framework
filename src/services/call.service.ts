@@ -3,6 +3,7 @@ import FormData from "form-data";
 import { CallApiError } from "../errors";
 import { TelegramConfig } from "../types";
 import { CONFIG_TOKEN, Inject, Injectable } from "../di";
+import * as console from "node:console";
 
 @Injectable()
 export class CallService {
@@ -42,7 +43,19 @@ export class CallService {
       const result = await fetch(url, options)
         .then((res) => res.text())
         .then((responseStr: string) => {
-          const response = JSON.parse(responseStr);
+          let response;
+          try {
+            response = JSON.parse(responseStr);
+          } catch (error) {
+            throw new CallApiError(
+              {
+                error_code: -1,
+                description: `invalid response json: ${responseStr}`,
+              },
+              method,
+              body,
+            );
+          }
 
           if (response.ok) {
             return response.result;

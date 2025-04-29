@@ -60,7 +60,7 @@ export class InlineService {
       throw new Error("Invalid inline query");
     }
 
-    await this.apiService.answerInlineQuery({
+    await this.apiService.methods.answerInlineQuery({
       inline_query_id: inlineQueryId,
       button: {
         text: "Unknown command",

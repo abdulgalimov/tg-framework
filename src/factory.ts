@@ -5,14 +5,15 @@ import {
   TelegramConfig,
 } from "./types";
 import {
+  ACTIONS_TREE_EXT,
   CONFIG_TOKEN,
   diContainer,
-  Provider,
   ENTRY_SERVICE_EXT,
-  LOGGER_TOKEN,
-  STORAGE_SERVICE_EXT,
-  ACTIONS_TREE_EXT,
   LOCALE_SERVICE_EXT,
+  LOGGER_TOKEN,
+  Provider,
+  Scopes,
+  STORAGE_SERVICE_EXT,
 } from "./di";
 import { Telegram } from "./telegram";
 import { Logger } from "./logger";
@@ -26,7 +27,9 @@ export class TgFactory {
     const { entryService, logService, storageService, localeService } =
       services;
 
-    diContainer.register(LOGGER_TOKEN, logService || Logger);
+    diContainer.register(LOGGER_TOKEN, logService || Logger, {
+      scope: Scopes.Transient,
+    });
 
     const configProvider: Provider<TelegramConfig> = {
       useFactory: () => config,
