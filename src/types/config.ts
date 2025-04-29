@@ -1,5 +1,5 @@
 import { User as TgUser } from "@grammyjs/types";
-import { type AllActionsTree, type UpdateHandler, User } from "./index";
+import { type AllActionsTree, User } from "./index";
 
 export type TextIcons = Record<string, string>;
 
@@ -23,11 +23,10 @@ export type Locale = {
   ): string;
 };
 
-export type FrameworkConfig = {
-  tg: TelegramConfig;
+export type FrameworkOptions = {
+  config: TelegramConfig;
   storage: DataStorage;
   locale: Locale;
   actionsTree: AllActionsTree;
-  handler: UpdateHandler;
   textIcons?: TextIcons;
 };

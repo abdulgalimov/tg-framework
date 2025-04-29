@@ -5,7 +5,7 @@ import type {
   InlineData,
   InlineExtraOptions,
   DataStorage,
-  FrameworkConfig,
+  FrameworkOptions,
 } from "../types";
 import { CONFIG_KEY, Inject, Injectable } from "../di";
 
@@ -18,7 +18,7 @@ export class InlineService {
 
   private readonly storage: DataStorage;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
     this.storage = frameworkConfig.storage;
   }
 

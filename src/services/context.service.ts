@@ -15,7 +15,7 @@ import type {
   AnswerInlineQueryContext,
   EditMessageTextArgs,
   EditMessageTextResult,
-  FrameworkConfig,
+  FrameworkOptions,
   KeyboardArgs,
   ReplyArgsContext,
   ReplyOptions,
@@ -37,7 +37,7 @@ export class ContextService {
 
   private readonly actionsTree: AllActionsTree;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
     this.actionsTree = frameworkConfig.actionsTree;
   }
 

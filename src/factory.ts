@@ -1,15 +1,26 @@
-import { FrameworkConfig } from "./types";
-import { CONFIG_KEY, diContainer, Provider, initializeInjects } from "./di";
+import { FrameworkOptions } from "./types";
+import {
+  CONFIG_KEY,
+  diContainer,
+  Provider,
+  initializeInjects,
+  ENTRY_SERVICE_KEY,
+} from "./di";
 import { Telegram } from "./telegram";
 
 export class TgFactory {
-  public static create(frameworkConfig: FrameworkConfig): Telegram {
-    const provider: Provider<FrameworkConfig> = {
-      useFactory: () => frameworkConfig,
+  public static create<EntryService>(
+    frameworkOptions: FrameworkOptions,
+    entryServiceClass: { new (): EntryService },
+  ): Telegram<EntryService> {
+    const configProvider: Provider<FrameworkOptions> = {
+      useFactory: () => frameworkOptions,
     };
-    diContainer.register(CONFIG_KEY, provider);
+    diContainer.register(CONFIG_KEY, configProvider);
 
-    const tg = diContainer.resolve<Telegram>(Telegram);
+    diContainer.register(ENTRY_SERVICE_KEY, entryServiceClass);
+
+    const tg = diContainer.resolve<Telegram<EntryService>>(Telegram);
 
     const instances = initializeInjects(tg);
     instances.forEach((instance) => {

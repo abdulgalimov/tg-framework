@@ -1,7 +1,6 @@
 import { INJECT_ARGS, Provider, UPDATE_KEY, UpdateTarget } from "./types";
 import { Logger } from "../logger";
 import { getProviderName } from "./utils";
-import * as console from "node:console";
 
 export class DiContainer {
   private readonly logger = new Logger("DI");
@@ -10,10 +9,6 @@ export class DiContainer {
   private providers = new Map<any, Provider>();
 
   private updateTarget: UpdateTarget | null = null;
-
-  public setUpdate(target: UpdateTarget) {
-    this.updateTarget = target;
-  }
 
   public getUpdateTarget(): UpdateTarget | null {
     return this.updateTarget;
@@ -58,8 +53,15 @@ export class DiContainer {
       throw new Error(`Cannot resolve provider for token: ${token.toString()}`);
     }
 
-    const updateKey = Reflect.getMetadata(UPDATE_KEY, provider);
-    console.log("updateKey", updateKey);
+    const prototype = Object.getPrototypeOf(instance);
+    const updateKey = Reflect.getMetadata(UPDATE_KEY, prototype);
+
+    if (updateKey) {
+      this.updateTarget = {
+        target: instance,
+        key: updateKey,
+      };
+    }
 
     this.services.set(token, instance);
     return instance;

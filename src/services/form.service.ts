@@ -11,7 +11,7 @@ import type {
   Form,
   ReplyArgsContext,
   DataStorage,
-  FrameworkConfig,
+  FrameworkOptions,
 } from "../types";
 import { Logger } from "../logger";
 import { CONFIG_KEY, Inject } from "../di";
@@ -36,7 +36,7 @@ export class FormService {
 
   private readonly logger = new Logger(FormService.name);
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
     this.storage = frameworkConfig.storage;
   }
 

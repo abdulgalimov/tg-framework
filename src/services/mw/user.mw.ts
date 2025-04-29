@@ -1,13 +1,13 @@
 import { getContext } from "../../context";
 import { BaseMw } from "./base.mw";
-import { DataStorage, FrameworkConfig, User } from "../../types";
+import { DataStorage, FrameworkOptions, User } from "../../types";
 import { CONFIG_KEY, Inject, Injectable } from "../../di";
 
 @Injectable()
 export class UserMw extends BaseMw {
   private readonly storage: DataStorage;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
     super(UserMw.name);
 
     this.storage = frameworkConfig.storage;

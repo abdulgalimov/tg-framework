@@ -1,7 +1,9 @@
 import { UPDATE_KEY } from "../types";
+import * as console from "node:console";
 
 export function Update(): MethodDecorator {
   return (target, key, descriptor: TypedPropertyDescriptor<any>) => {
-    Reflect.defineMetadata(UPDATE_KEY, true, target, key);
+    console.log("Update", key);
+    Reflect.defineMetadata(UPDATE_KEY, key, target);
   };
 }

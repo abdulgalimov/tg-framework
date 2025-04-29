@@ -10,7 +10,7 @@ import {
   ActionItemPayload,
   AllActionsTree,
   Form,
-  FrameworkConfig,
+  FrameworkOptions,
   InlineChosenPayload,
   InlineQueryPayload,
 } from "../../types";
@@ -38,7 +38,7 @@ export class ActionsMw extends BaseMw {
 
   private readonly actionsTree: AllActionsTree;
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
     super(ActionsMw.name);
 
     this.actionsTree = frameworkConfig.actionsTree;

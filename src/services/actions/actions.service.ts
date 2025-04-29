@@ -3,7 +3,7 @@ import {
   type ActionItem,
   type AllActionsTree,
   PayloadsField,
-  FrameworkConfig,
+  FrameworkOptions,
 } from "../../types";
 import { ActionMeta } from "./meta";
 import { CONFIG_KEY, Inject, Injectable } from "../../di";
@@ -22,7 +22,7 @@ export class ActionsService {
 
   private readonly byId: Record<number, ActionItem> = {};
 
-  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkConfig) {
+  public constructor(@Inject(CONFIG_KEY) frameworkConfig: FrameworkOptions) {
     this.actionsTree = frameworkConfig.actionsTree;
     this.storage = frameworkConfig.storage;
   }

@@ -3,6 +3,7 @@ export const INJECT_PROPS = Symbol("INJECT_PROPS");
 export const INJECT_ARGS = Symbol("INJECT_ARGS");
 export const CONFIG_KEY = Symbol("CONFIG_KEY");
 export const UPDATE_KEY = Symbol("UPDATE_KEY");
+export const ENTRY_SERVICE_KEY = Symbol("ENTRY_SERVICE_KEY");
 
 export type FactoryProvider<T = any> = {
   useFactory: (...args: any[]) => T;

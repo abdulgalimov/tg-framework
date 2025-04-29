@@ -12,13 +12,19 @@ import {
   ApiService,
   FormService,
 } from "./services";
-import { FrameworkConfig, UpdateHandler, UpdateResult } from "./types";
+import { FrameworkOptions, UpdateResult } from "./types";
 import { type ContextAny, createContext, getContext } from "./context";
 import { Logger } from "./logger";
-import { CONFIG_KEY, diContainer, Inject, Injectable } from "./di";
+import {
+  CONFIG_KEY,
+  diContainer,
+  ENTRY_SERVICE_KEY,
+  Inject,
+  Injectable,
+} from "./di";
 
 @Injectable()
-export class Telegram {
+export class Telegram<EntryService> {
   @Inject(CallService)
   public readonly callService!: CallService;
 
@@ -47,25 +53,20 @@ export class Telegram {
   public readonly keyboard!: KeyboardService;
 
   @Inject(MiddlewaresService)
-  private middlewaresService!: MiddlewaresService;
+  private readonly middlewaresService!: MiddlewaresService;
+
+  @Inject(ENTRY_SERVICE_KEY)
+  public readonly entryService!: EntryService;
 
   private logger = new Logger(Telegram.name);
-
-  private readonly handler: UpdateHandler;
 
   private _username: string = "";
 
   public constructor(
-    @Inject(CONFIG_KEY) private readonly frameworkConfig: FrameworkConfig,
-  ) {
-    const { handler } = frameworkConfig;
-
-    this.handler = handler;
-  }
+    @Inject(CONFIG_KEY) private readonly frameworkConfig: FrameworkOptions,
+  ) {}
 
   public async init() {
-    const { storage, actionsTree } = this.frameworkConfig;
-
     await this.actions.parse();
 
     this.updateService.setHandler((update) => this.updateHandler(update));
@@ -113,7 +114,7 @@ export class Telegram {
 
       result = await target[key]();
     } else {
-      result = await this.handler();
+      return;
     }
 
     if (typeof result === "object" && result.redirect) {
