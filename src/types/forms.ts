@@ -1,5 +1,5 @@
 import type { ActionForm } from "./actions";
-import type { UnknownPayload } from "../services/payload";
+import type { UnknownPayload } from "../services";
 
 export type CreateFormOptions = {
   action: ActionForm;

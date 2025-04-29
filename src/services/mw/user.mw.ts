@@ -1,16 +1,25 @@
 import { getContext } from "../../context";
-import { BaseMw } from "./base.mw";
-import { StorageServiceExternal, User } from "../../types";
-import { Inject, Injectable, STORAGE_SERVICE_EXT } from "../../di";
+import { LogService, StorageServiceExternal, User } from "../../types";
+import {
+  Inject,
+  Injectable,
+  LOGGER_TOKEN,
+  STORAGE_SERVICE_EXT,
+} from "../../di";
+import { Middleware } from "./types";
 
 @Injectable()
-export class UserMw extends BaseMw {
+export class UserMw implements Middleware {
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: UserMw.name,
+    },
+  })
+  private readonly logger!: LogService;
+
   @Inject(STORAGE_SERVICE_EXT)
   private readonly storage!: StorageServiceExternal;
 
-  public constructor() {
-    super(UserMw.name);
-  }
   public async execute(): Promise<void> {
     const ctx = getContext();
 

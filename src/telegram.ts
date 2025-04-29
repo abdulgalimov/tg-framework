@@ -12,9 +12,10 @@ import {
   PayloadService,
   UpdateService,
 } from "./services";
-import { LogService, UpdateResult } from "./types";
+import { AllActionsTree, LogService, UpdateResult } from "./types";
 import { type ContextAny, createContext, getContext } from "./context";
 import {
+  ACTIONS_TREE_EXT,
   diContainer,
   ENTRY_SERVICE_EXT,
   Inject,
@@ -25,31 +26,31 @@ import {
 @Injectable()
 export class Telegram<EntryService> {
   @Inject(CallService)
-  public readonly callService!: CallService;
+  private readonly callService!: CallService;
 
   @Inject(ActionsService)
-  public readonly actions!: ActionsService;
+  private readonly actions!: ActionsService;
 
   @Inject(UpdateService)
   private readonly updateService!: UpdateService;
 
   @Inject(PayloadService)
-  public readonly payload!: PayloadService;
+  private readonly payload!: PayloadService;
 
   @Inject(ApiService)
-  public readonly api!: ApiService;
+  private readonly api!: ApiService;
 
   @Inject(FormService)
-  public readonly form!: FormService;
+  private readonly form!: FormService;
 
   @Inject(ContextService)
-  public readonly context!: ContextService;
+  private readonly context!: ContextService;
 
   @Inject(InlineService)
-  public readonly inline!: InlineService;
+  private readonly inline!: InlineService;
 
   @Inject(KeyboardService)
-  public readonly keyboard!: KeyboardService;
+  private readonly keyboard!: KeyboardService;
 
   @Inject(MiddlewaresService)
   private readonly middlewaresService!: MiddlewaresService;
@@ -64,20 +65,25 @@ export class Telegram<EntryService> {
   })
   private readonly logger!: LogService;
 
+  @Inject(ACTIONS_TREE_EXT)
+  private readonly actionsTree!: AllActionsTree;
+
   private _username: string = "";
 
   public async init() {
     await this.actions.parse();
 
-    this.updateService.setHandler((update) => this.updateHandler(update));
+    this.updateService.setHandler((update) => this.onUpdate(update));
 
     const me = await this.api.methods.getMe({});
     this._username = me.username;
+  }
 
+  public startLongpoll() {
     this.updateService.startLongpoll().catch(this.logger.error);
   }
 
-  private async updateHandler(update: Update) {
+  public async onUpdate(update: Update) {
     try {
       const store = {
         update,
@@ -95,6 +101,9 @@ export class Telegram<EntryService> {
     const ctx = getContext();
 
     await this.middlewaresService.execute();
+    if (!ctx.action) {
+      ctx.action = this.actionsTree.core.none;
+    }
 
     try {
       await this.tryHandler(ctx, 1);

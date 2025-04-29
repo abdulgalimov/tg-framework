@@ -18,14 +18,18 @@ import {
 import { Telegram } from "./telegram";
 import { Logger } from "./logger";
 
-export class TgFactory {
-  public static create<EntryService>(
-    frameworkOptions: FrameworkOptions,
-    services: FrameworkServices<EntryService>,
-  ): Telegram<EntryService> {
-    const { actionsTree, config } = frameworkOptions;
+export class TgFactory<EntryService> {
+  public constructor(
+    private readonly frameworkOptions: FrameworkOptions,
+    private readonly services: FrameworkServices<EntryService>,
+  ) {
+    this.registerServices();
+  }
+
+  private registerServices() {
+    const { actionsTree, config } = this.frameworkOptions;
     const { entryService, logService, storageService, localeService } =
-      services;
+      this.services;
 
     diContainer.register(LOGGER_TOKEN, logService || Logger, {
       scope: Scopes.Transient,
@@ -46,7 +50,13 @@ export class TgFactory {
       useFactory: () => actionsTree,
     };
     diContainer.register(ACTIONS_TREE_EXT, actionsTreeProvider);
+  }
 
+  public register<T>(token: any, provider: Provider<T>) {
+    diContainer.register(token, provider);
+  }
+
+  public create(): Telegram<EntryService> {
     const tg = diContainer.resolve<Telegram<EntryService>>(Telegram);
 
     const instances = diContainer.initializeInjects(tg);
