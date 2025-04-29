@@ -5,9 +5,9 @@ import type {
 import type { Message } from "@grammyjs/types/message";
 
 import { ApiService } from "./api.service";
-import { getContext } from "./context";
-import { CallApiError, TgErrorCodes } from "./errors";
-import type { LocaleService } from "./locale.service";
+import { getContext } from "../context";
+import { CallApiError, TgErrorCodes } from "../errors";
+import { LocaleService } from "./locale.service";
 import { PayloadService } from "./payload";
 import type {
   AllActionsTree,
@@ -20,15 +20,24 @@ import type {
   ReplyOptions,
   ReplyResultContext,
   SendMessageArgs,
-} from "./types";
+} from "../types";
+import { ACTIONS_TREE_EXT, Inject, Injectable } from "../di";
 
+@Injectable()
 export class ContextService {
-  public constructor(
-    private readonly actionsTree: AllActionsTree,
-    private readonly apiService: ApiService,
-    private readonly localeService: LocaleService,
-    private readonly payloadService: PayloadService,
-  ) {}
+  @Inject(LocaleService)
+  private readonly localeService!: LocaleService;
+
+  @Inject(ApiService)
+  private readonly apiService!: ApiService;
+
+  @Inject(PayloadService)
+  private readonly payloadService!: PayloadService;
+
+  @Inject(ACTIONS_TREE_EXT)
+  private readonly actionsTree!: AllActionsTree;
+
+  public constructor() {}
 
   public async delete(messageId?: number | number[]): Promise<void> {
     const ctx = getContext();

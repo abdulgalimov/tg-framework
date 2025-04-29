@@ -1,48 +1,47 @@
 import { type InlineKeyboardMarkup } from "@grammyjs/types/markup";
 
 import { ActionsService } from "./actions";
-import { getContext } from "./context";
-import type { ContextService } from "./context.service";
-import type { LocaleService } from "./locale.service";
+import { getContext } from "../context";
+import { ContextService } from "./context.service";
+import { LocaleService } from "./locale.service";
 import { PayloadService } from "./payload";
 import type {
   ActionForm,
   CreateFormOptions,
   Form,
+  LogService,
   ReplyArgsContext,
-  DataStorage,
-} from "./types";
-import { Logger } from "./logger";
+  StorageServiceExternal,
+} from "../types";
+import { Inject, LOGGER_TOKEN, STORAGE_SERVICE_EXT } from "../di";
 
 export class FormService {
   // Delete from history the messages entered by the user during the token search process.
   private readonly DELETE_HISTORY_MESSAGES = true;
 
-  private readonly contextService: ContextService;
+  @Inject(ContextService)
+  private readonly contextService!: ContextService;
 
-  private readonly actionsService: ActionsService;
+  @Inject(ActionsService)
+  private readonly actionsService!: ActionsService;
 
-  private readonly payloadService: PayloadService;
+  @Inject(PayloadService)
+  private readonly payloadService!: PayloadService;
 
-  private readonly localeService: LocaleService;
+  @Inject(LocaleService)
+  private readonly localeService!: LocaleService;
 
-  private readonly storage: DataStorage;
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: FormService.name,
+    },
+  })
+  private readonly logger!: LogService;
 
-  private readonly logger = new Logger(FormService.name);
+  @Inject(STORAGE_SERVICE_EXT)
+  private readonly storage!: StorageServiceExternal;
 
-  public constructor(
-    contextService: ContextService,
-    actionsService: ActionsService,
-    payloadService: PayloadService,
-    localeService: LocaleService,
-    storage: DataStorage,
-  ) {
-    this.contextService = contextService;
-    this.actionsService = actionsService;
-    this.payloadService = payloadService;
-    this.localeService = localeService;
-    this.storage = storage;
-  }
+  public constructor() {}
 
   public find(userId: number): Promise<Form | null> {
     return this.storage.getValue(`user_form_${userId}`);

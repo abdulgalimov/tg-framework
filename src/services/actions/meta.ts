@@ -1,5 +1,5 @@
-import { type PayloadSchemaAny } from '../payload';
-import { type ActionItem, type Meta, PayloadsField } from '../types';
+import { type PayloadSchemaAny } from "../payload";
+import { type ActionItem, type Meta, PayloadsField } from "../../types";
 
 export class ActionMeta implements Meta {
   private readonly data: Record<string, unknown>;
@@ -27,7 +27,7 @@ export class ActionMeta implements Meta {
   ) {
     this.data = data;
 
-    this.fullKey = keyPath.join('.');
+    this.fullKey = keyPath.join(".");
     this.isRoot = keyPath.length === 0;
 
     this.parent = parentAction;
@@ -35,7 +35,7 @@ export class ActionMeta implements Meta {
 
   public get id(): number {
     if (this._id === null) {
-      throw new Error('id must be defined');
+      throw new Error("id must be defined");
     }
 
     return this._id;

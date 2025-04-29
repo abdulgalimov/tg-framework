@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { PayloadSchema, PayloadSchemaAny } from "../payload";
+import { PayloadSchema, PayloadSchemaAny } from "../services/payload";
 
 export type Meta = {
   id: number;

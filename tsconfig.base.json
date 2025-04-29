@@ -16,6 +16,8 @@
     "declaration": true,
     "declarationDir": "./dist/types",
     "rootDir": "./src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": [
     "src",

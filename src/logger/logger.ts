@@ -1,7 +1,8 @@
 import * as console from "node:console";
+import { LogService } from "../types";
 
-export class Logger {
-  public constructor(private readonly name: string) {}
+export class Logger implements LogService {
+  public name: string = "";
 
   public debug(...args: unknown[]) {
     console.log(...args);

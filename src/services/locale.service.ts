@@ -1,6 +1,6 @@
-import { getContext } from "./context";
-import { Logger } from "./logger";
-import { Locale, TextIcons } from "./types";
+import { getContext } from "../context";
+import { LocaleServiceExternal, LogService } from "../types";
+import { Inject, Injectable, LOCALE_SERVICE_EXT, LOGGER_TOKEN } from "../di";
 
 type Options = {
   args?: Record<string, unknown> | null;
@@ -8,18 +8,17 @@ type Options = {
   leftValue?: string | number | null;
 };
 
+@Injectable()
 export class LocaleService {
-  private readonly locale: Locale;
+  @Inject(LOCALE_SERVICE_EXT)
+  private readonly locale!: LocaleServiceExternal;
 
-  private readonly textIcons: TextIcons;
-
-  private readonly logger: Logger;
-
-  public constructor(locale: Locale, textIcons?: TextIcons) {
-    this.locale = locale;
-    this.textIcons = textIcons || {};
-    this.logger = new Logger(LocaleService.name);
-  }
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: LocaleService.name,
+    },
+  })
+  private readonly logger!: LogService;
 
   public text(textCode: string, options?: Options): string {
     const { user } = getContext();
@@ -35,7 +34,7 @@ export class LocaleService {
       const hasLeftValue = leftValue !== null && leftValue !== undefined;
 
       const splitter =
-        icon || this.textIcons[textCode] || (hasLeftValue ? "  " : "");
+        icon || this.locale.textIcons[textCode] || (hasLeftValue ? "  " : "");
 
       return `${hasLeftValue ? leftValue : ""}${splitter}${text}`;
     } catch (error) {

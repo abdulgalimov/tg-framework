@@ -1,99 +1,75 @@
 import type { Update } from "@grammyjs/types";
 
-import { CallService } from "./call.service";
-import { PayloadService } from "./payload";
-import { FrameworkConfig, UpdateHandler, UpdateResult } from "./types";
-import { ActionsService } from "./actions";
-import { ApiService } from "./api.service";
+import {
+  ActionsService,
+  ApiService,
+  CallService,
+  ContextService,
+  FormService,
+  InlineService,
+  KeyboardService,
+  MiddlewaresService,
+  PayloadService,
+  UpdateService,
+} from "./services";
+import { LogService, UpdateResult } from "./types";
 import { type ContextAny, createContext, getContext } from "./context";
-import { ContextService } from "./context.service";
-import { FormService } from "./form.service";
-import { InlineService } from "./inline.service";
-import { KeyboardService } from "./keyboard.service";
-import { MiddlewaresService } from "./mw";
-import { UpdateService } from "./update.service";
-import { Logger } from "./logger";
-import { LocaleService } from "./locale.service";
+import {
+  diContainer,
+  ENTRY_SERVICE_EXT,
+  Inject,
+  Injectable,
+  LOGGER_TOKEN,
+} from "./di";
 
-export class Telegram {
-  private readonly callService: CallService;
+@Injectable()
+export class Telegram<EntryService> {
+  @Inject(CallService)
+  public readonly callService!: CallService;
 
-  public readonly actions: ActionsService;
+  @Inject(ActionsService)
+  public readonly actions!: ActionsService;
 
-  private readonly middlewaresService: MiddlewaresService;
+  @Inject(UpdateService)
+  private readonly updateService!: UpdateService;
 
-  private readonly updateService: UpdateService;
+  @Inject(PayloadService)
+  public readonly payload!: PayloadService;
 
-  public readonly payload: PayloadService;
+  @Inject(ApiService)
+  public readonly api!: ApiService;
 
-  public readonly api: ApiService;
+  @Inject(FormService)
+  public readonly form!: FormService;
 
-  public readonly form: FormService;
+  @Inject(ContextService)
+  public readonly context!: ContextService;
 
-  public readonly context: ContextService;
+  @Inject(InlineService)
+  public readonly inline!: InlineService;
 
-  public readonly inline: InlineService;
+  @Inject(KeyboardService)
+  public readonly keyboard!: KeyboardService;
 
-  public readonly keyboard: KeyboardService;
+  @Inject(MiddlewaresService)
+  private readonly middlewaresService!: MiddlewaresService;
 
-  private logger = new Logger(Telegram.name);
+  @Inject(ENTRY_SERVICE_EXT)
+  public readonly entryService!: EntryService;
 
-  private readonly handler: UpdateHandler;
+  @Inject<LogService>(LOGGER_TOKEN, {
+    properties: {
+      name: Telegram.name,
+    },
+  })
+  private readonly logger!: LogService;
 
   private _username: string = "";
 
-  public constructor(frameworkConfig: FrameworkConfig) {
-    const { storage, tg, locale, actionsTree, handler, textIcons } =
-      frameworkConfig;
-
-    this.handler = handler;
-
-    this.callService = new CallService(tg);
-
-    this.actions = new ActionsService(actionsTree, storage);
-
-    this.payload = new PayloadService(this.actions);
-
-    this.api = new ApiService(this.callService);
-
-    const localeService = new LocaleService(locale, textIcons);
-
-    this.context = new ContextService(
-      actionsTree,
-      this.api,
-      localeService,
-      this.payload,
-    );
-
-    this.form = new FormService(
-      this.context,
-      this.actions,
-      this.payload,
-      localeService,
-      storage,
-    );
-
-    this.inline = new InlineService(this.api, storage);
-
-    this.keyboard = new KeyboardService(this.context, this.payload);
-
-    this.middlewaresService = new MiddlewaresService({
-      storage,
-      actionsTree,
-      apiService: this.api,
-      actionsService: this.actions,
-      payloadService: this.payload,
-      formService: this.form,
-      inlineService: this.inline,
-    });
-
-    this.updateService = new UpdateService(this.callService, (update) =>
-      this.updateHandler(update),
-    );
-  }
-
   public async init() {
     await this.actions.parse();
+
+    this.updateService.setHandler((update) => this.updateHandler(update));
 
     const me = await this.api.getMe({});
     this._username = me.username;
@@ -131,7 +107,15 @@ export class Telegram {
     ctx: ContextAny,
     tryCount: number,
   ): Promise<UpdateResult> {
-    const result = await this.handler();
+    const updateTarget = diContainer.getUpdateTarget();
+    let result: UpdateResult;
+    if (updateTarget !== null) {
+      const { target, key } = updateTarget;
+
+      result = await target[key]();
+    } else {
+      return;
+    }
 
     if (typeof result === "object" && result.redirect) {
       const { action, payload } = result.redirect;

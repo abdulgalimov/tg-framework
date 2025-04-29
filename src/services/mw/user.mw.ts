@@ -1,11 +1,15 @@
-import type { MwServiceOptions } from "./types";
-import { getContext } from "../context";
+import { getContext } from "../../context";
 import { BaseMw } from "./base.mw";
-import { User } from "../types";
+import { StorageServiceExternal, User } from "../../types";
+import { Inject, Injectable, STORAGE_SERVICE_EXT } from "../../di";
 
+@Injectable()
 export class UserMw extends BaseMw {
-  public constructor(options: MwServiceOptions) {
-    super(UserMw.name, options);
+  @Inject(STORAGE_SERVICE_EXT)
+  private readonly storage!: StorageServiceExternal;
+
+  public constructor() {
+    super(UserMw.name);
   }
   public async execute(): Promise<void> {
     const ctx = getContext();
