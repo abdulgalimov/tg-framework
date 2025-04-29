@@ -3,7 +3,7 @@ import FormData from "form-data";
 import { CallApiError } from "../errors";
 import { FrameworkConfig, TelegramConfig } from "../types";
 import { CONFIG_KEY, Injectable } from "../di";
-import { Inject } from "../di/inject";
+import { Inject } from "../di/decorators/inject";
 
 @Injectable()
 export class CallService {

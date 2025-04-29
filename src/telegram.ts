@@ -15,7 +15,7 @@ import {
 import { FrameworkConfig, UpdateHandler, UpdateResult } from "./types";
 import { type ContextAny, createContext, getContext } from "./context";
 import { Logger } from "./logger";
-import { CONFIG_KEY, Inject, Injectable } from "./di";
+import { CONFIG_KEY, diContainer, Inject, Injectable } from "./di";
 
 @Injectable()
 export class Telegram {
@@ -106,7 +106,15 @@ export class Telegram {
     ctx: ContextAny,
     tryCount: number,
   ): Promise<UpdateResult> {
-    const result = await this.handler();
+    const updateTarget = diContainer.getUpdateTarget();
+    let result: UpdateResult;
+    if (updateTarget !== null) {
+      const { target, key } = updateTarget;
+
+      result = await target[key]();
+    } else {
+      result = await this.handler();
+    }
 
     if (typeof result === "object" && result.redirect) {
       const { action, payload } = result.redirect;

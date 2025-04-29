@@ -1,5 +1,5 @@
-import { INJECTABLE_KEY, Provider } from "./types";
-import { diContainer } from "./container";
+import { INJECTABLE_KEY, Provider } from "../types";
+import { diContainer } from "../container";
 
 export function Injectable(): ClassDecorator {
   return (target) => {

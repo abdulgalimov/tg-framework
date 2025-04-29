@@ -1,4 +1,3 @@
 export * from "./types";
-export * from "./injectable";
-export * from "./inject";
+export * from "./decorators";
 export * from "./container";

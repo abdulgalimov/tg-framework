@@ -1,5 +1,5 @@
-import { INJECT_ARGS, INJECT_PROPS } from "./types";
-import { diContainer } from "./container";
+import { INJECT_ARGS, INJECT_PROPS } from "../types";
+import { diContainer } from "../container";
 
 export function Inject(token?: any) {
   return (target: any, key: any, index?: number) => {

@@ -2,6 +2,7 @@ export const INJECTABLE_KEY = Symbol("INJECTABLE_KEY");
 export const INJECT_PROPS = Symbol("INJECT_PROPS");
 export const INJECT_ARGS = Symbol("INJECT_ARGS");
 export const CONFIG_KEY = Symbol("CONFIG_KEY");
+export const UPDATE_KEY = Symbol("UPDATE_KEY");
 
 export type FactoryProvider<T = any> = {
   useFactory: (...args: any[]) => T;
@@ -11,3 +12,8 @@ export type FactoryProvider<T = any> = {
 export type Provider<T = any> =
   | (new (...args: any[]) => T)
   | FactoryProvider<T>;
+
+export type UpdateTarget = {
+  target: any;
+  key: string;
+};

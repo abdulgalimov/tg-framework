@@ -1,12 +1,23 @@
-import { INJECT_ARGS, Provider } from "./types";
+import { INJECT_ARGS, Provider, UPDATE_KEY, UpdateTarget } from "./types";
 import { Logger } from "../logger";
 import { getProviderName } from "./utils";
+import * as console from "node:console";
 
 export class DiContainer {
   private readonly logger = new Logger("DI");
 
   private services = new Map<any, any>();
   private providers = new Map<any, Provider>();
+
+  private updateTarget: UpdateTarget | null = null;
+
+  public setUpdate(target: UpdateTarget) {
+    this.updateTarget = target;
+  }
+
+  public getUpdateTarget(): UpdateTarget | null {
+    return this.updateTarget;
+  }
 
   public register<T>(token: any, provider: Provider<T>) {
     this.logger.debug(
@@ -46,6 +57,9 @@ export class DiContainer {
     } else {
       throw new Error(`Cannot resolve provider for token: ${token.toString()}`);
     }
+
+    const updateKey = Reflect.getMetadata(UPDATE_KEY, provider);
+    console.log("updateKey", updateKey);
 
     this.services.set(token, instance);
     return instance;
