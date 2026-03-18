@@ -1,0 +1,66 @@
+{
+  "name": "@abdulgalimov/tg-framework",
+  "version": "0.1.0",
+  "description": "TypeScript framework for building Telegram bots",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "./dist/**",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "require": "./dist/*.js"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "uuid": "^11.1.0"
+  },
+  "peerDependencies": {
+    "@grammyjs/types": "^3.16.0",
+    "@opentelemetry/api": "^1.9.0"
+  },
+  "devDependencies": {
+    "@grammyjs/types": "^3.16.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@types/node": "^25.5.0",
+    "tsdown": "^0.21.2",
+    "typescript": "^5.7.3"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "framework",
+    "typescript",
+    "grammyjs"
+  ],
+  "author": "abdulgalimov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdulgalimov/tg-framework.git"
+  },
+  "homepage": "https://github.com/abdulgalimov/tg-framework#readme",
+  "bugs": {
+    "url": "https://github.com/abdulgalimov/tg-framework/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

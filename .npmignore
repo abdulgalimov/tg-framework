@@ -1,0 +1,8 @@
+src/
+.idea/
+.turbo/
+tsconfig.json
+tsdown.config.ts
+.DS_Store
+.gitignore
+node_modules/
