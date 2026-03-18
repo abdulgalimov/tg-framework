@@ -61,7 +61,7 @@ export class InlineService<User extends TgUser> {
       throw new Error('Invalid inline query');
     }
 
-    await this.apiService.answerInlineQuery({
+    await this.apiService.call('answerInlineQuery', {
       inline_query_id: inlineQueryId,
       button: {
         text: 'Unknown command',

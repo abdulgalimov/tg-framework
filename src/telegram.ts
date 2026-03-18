@@ -128,7 +128,7 @@ export class Telegram<User extends TgUser> {
 
     await this.actions.parse();
 
-    const me = await this.api.getMe({});
+    const me = await this.api.call('getMe');
     this._username = me.username;
 
     this.payload.init(this._username);

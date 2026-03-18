@@ -62,7 +62,7 @@ export class ContextService<User extends TgUser> {
         ctx.flags.messageDeleted = true;
       }
 
-      await this.apiService.deleteMessage({
+      await this.apiService.call('deleteMessage', {
         chat_id: chatId,
         message_id: deleteMessageId,
       });
@@ -71,7 +71,7 @@ export class ContextService<User extends TgUser> {
         ctx.flags.messageDeleted = true;
       }
 
-      await this.apiService.deleteMessages({
+      await this.apiService.call('deleteMessages', {
         chat_id: chatId,
         message_ids: deleteMessageId,
       });
@@ -214,7 +214,7 @@ export class ContextService<User extends TgUser> {
           await this.payloadService.deleteKeyboard(user.telegramId, lastMessageId);
 
           this.apiService
-            .deleteMessage({
+            .call('deleteMessage', {
               chat_id: user.telegramId,
               message_id: lastMessageId,
             })
@@ -244,7 +244,7 @@ export class ContextService<User extends TgUser> {
     let isError = false;
     let messageId: number = 0;
     try {
-      const result = await this.apiService.sendPhoto(sendArgs);
+      const result = await this.apiService.call('sendPhoto', sendArgs);
 
       messageId = result.message_id;
 
@@ -272,21 +272,21 @@ export class ContextService<User extends TgUser> {
       if ('message_id' in args) {
         messageId = args.message_id!;
         try {
-          const result = await this.apiService.editMessageText(args);
+          const result = await this.apiService.call('editMessageText', args);
 
           return result as EditMessageTextResult;
         } catch (editError) {
           this.logger.warn('Failed edit message, try send new message', {
             error: editError,
           });
-          const result = await this.apiService.sendMessage(args as SendMessageArgs);
+          const result = await this.apiService.call('sendMessage', args as SendMessageArgs);
 
           messageId = result.message_id;
 
           return result;
         }
       } else {
-        const result = await this.apiService.sendMessage(args as SendMessageArgs);
+        const result = await this.apiService.call('sendMessage', args as SendMessageArgs);
 
         messageId = result.message_id;
 
@@ -351,7 +351,7 @@ export class ContextService<User extends TgUser> {
       throw new Error('Callback answered');
     }
 
-    const result = await this.apiService.answerCallbackQuery({
+    const result = await this.apiService.call('answerCallbackQuery', {
       ...args,
       callback_query_id: ctx.update.callback_query.id,
     });
@@ -372,7 +372,7 @@ export class ContextService<User extends TgUser> {
       throw new Error('Inline answered');
     }
 
-    const result = await this.apiService.answerInlineQuery({
+    const result = await this.apiService.call('answerInlineQuery', {
       cache_time: 1,
       ...args,
       inline_query_id: ctx.update.inline_query.id,

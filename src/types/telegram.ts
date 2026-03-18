@@ -1,6 +1,6 @@
-import type {Update} from '@grammyjs/types';
-import type {Message} from '@grammyjs/types/message';
-import type {ApiMethods} from '@grammyjs/types/methods';
+import type { Update } from '@grammyjs/types';
+import type { Message } from '@grammyjs/types/message';
+import type { ApiMethods } from '@grammyjs/types/methods';
 
 export type SendFile = {
   buffer: Buffer;
@@ -8,16 +8,20 @@ export type SendFile = {
   contentType: string;
 };
 
-
-
-
 export type TelegramMethod<MethodName extends keyof ApiMethods<SendFile>> =
   ApiMethods<SendFile>[MethodName] extends (args: infer Args) => infer Return
     ? (args: Args) => Promise<Return>
     : never;
 
 export type GetArgsFromMethod<MethodName extends keyof ApiMethods<SendFile>> =
-  ApiMethods<SendFile>[MethodName] extends (args: infer Args) => unknown ? Args : never;
+  ApiMethods<SendFile>[MethodName] extends () => unknown
+    ? null
+    : ApiMethods<SendFile>[MethodName] extends (args: infer Args) => unknown
+      ? Args
+      : never;
+
+export type GetReturnFromMethod<MethodName extends keyof ApiMethods<SendFile>> =
+  ApiMethods<SendFile>[MethodName] extends (args: any) => infer Return ? Return : never;
 
 export type UpdateHandler = (update: Update) => Promise<void>;
 

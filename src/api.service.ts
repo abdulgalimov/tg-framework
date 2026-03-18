@@ -1,10 +1,14 @@
 import type { CallService } from './call.service';
 import {
+  GetArgsFromMethod,
+  GetReturnFromMethod,
   type SendDocumentArgs,
   type SendFile,
   type SendPhotoArgs,
   type TelegramMethod,
 } from './types';
+import { ApiMethods } from '@grammyjs/types/methods';
+import { Message } from '@grammyjs/types/message';
 
 export class ApiService {
   private readonly callService: CallService;
@@ -63,43 +67,11 @@ export class ApiService {
     }
   };
 
-  public sendMessage: TelegramMethod<'sendMessage'> = async (args) => {
-    return await this.callService.callApi('sendMessage', args);
-  };
-
-  public sendMessageDraft: TelegramMethod<'sendMessageDraft'> = async (args) => {
-    return await this.callService.callApi('sendMessageDraft', args);
-  };
-
-  public deleteMessage: TelegramMethod<'deleteMessage'> = async (args) => {
-    return await this.callService.callApi('deleteMessage', args);
-  };
-
-  public deleteMessages: TelegramMethod<'deleteMessages'> = async (args) => {
-    return await this.callService.callApi('deleteMessages', args);
-  };
-
-  public sendSticker: TelegramMethod<'sendSticker'> = async (args) => {
-    return await this.callService.callApi('sendSticker', args);
-  };
-
-  public editMessageText: TelegramMethod<'editMessageText'> = async (args) => {
-    return await this.callService.callApi('editMessageText', args);
-  };
-
-  public setMyCommands: TelegramMethod<'setMyCommands'> = async (args) => {
-    return await this.callService.callApi('setMyCommands', args);
-  };
-
-  public answerCallbackQuery: TelegramMethod<'answerCallbackQuery'> = async (args) => {
-    return await this.callService.callApi('answerCallbackQuery', args);
-  };
-
-  public answerInlineQuery: TelegramMethod<'answerInlineQuery'> = async (args) => {
-    return await this.callService.callApi('answerInlineQuery', args);
-  };
-
-  public getMe: TelegramMethod<'getMe'> = async () => {
-    return await this.callService.callApi('getMe');
-  };
+  public async call<Method extends keyof ApiMethods<SendFile>>(
+    method: Method,
+    ...args: GetArgsFromMethod<Method> extends null ? [] : [GetArgsFromMethod<Method>]
+  ): Promise<GetReturnFromMethod<Method>> {
+    const arg = args[0];
+    return await this.callService.callApi(method, arg as object);
+  }
 }
