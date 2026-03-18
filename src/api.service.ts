@@ -1,54 +1,15 @@
 import type { CallService } from './call.service';
-import type { ApplyTraceForInstance, TgOtel } from './interfaces';
 import {
-  type EditMessageTextArgs,
-  QzarButtonStyles,
   type SendDocumentArgs,
   type SendFile,
-  type SendMessageArgs,
   type SendPhotoArgs,
   type TelegramMethod,
 } from './types';
 
 export class ApiService {
   private readonly callService: CallService;
-  public constructor(callService: CallService, otel: TgOtel, applyTrace?: ApplyTraceForInstance) {
+  public constructor(callService: CallService) {
     this.callService = callService;
-
-    applyTrace?.({
-      kindName: 'tg',
-      instance: this as unknown as Record<string, unknown>,
-      otel,
-    });
-  }
-
-  private applyStyleButtons(
-    args: SendMessageArgs | EditMessageTextArgs | SendDocumentArgs | SendPhotoArgs,
-  ) {
-    if (!args.reply_markup?.inline_keyboard) {
-      return;
-    }
-    const keyboard = args.reply_markup?.inline_keyboard;
-    if (!keyboard) {
-      return;
-    }
-    keyboard.forEach((buttons) => {
-      buttons.forEach((button) => {
-        let style: string;
-        switch (button.qzarStyle) {
-          case QzarButtonStyles.Refresh:
-            style = 'primary';
-            break;
-          case QzarButtonStyles.Back:
-            style = 'danger';
-            break;
-          default:
-            return;
-        }
-        // @ts-expect-error
-        button.style = style;
-      });
-    });
   }
 
   private createFormData(args: SendDocumentArgs | SendPhotoArgs): FormData {
@@ -83,8 +44,6 @@ export class ApiService {
   }
 
   public sendDocument: TelegramMethod<'sendDocument'> = async (args) => {
-    this.applyStyleButtons(args);
-
     if (typeof args.document === 'object') {
       const formData = this.createFormData(args);
 
@@ -95,8 +54,6 @@ export class ApiService {
   };
 
   public sendPhoto: TelegramMethod<'sendPhoto'> = async (args) => {
-    this.applyStyleButtons(args);
-
     if (typeof args.photo === 'object') {
       const formData = this.createFormData(args);
 
@@ -107,14 +64,10 @@ export class ApiService {
   };
 
   public sendMessage: TelegramMethod<'sendMessage'> = async (args) => {
-    this.applyStyleButtons(args as SendMessageArgs);
-
     return await this.callService.callApi('sendMessage', args);
   };
 
   public sendMessageDraft: TelegramMethod<'sendMessageDraft'> = async (args) => {
-    this.applyStyleButtons(args as SendMessageArgs);
-
     return await this.callService.callApi('sendMessageDraft', args);
   };
 
@@ -131,8 +84,6 @@ export class ApiService {
   };
 
   public editMessageText: TelegramMethod<'editMessageText'> = async (args) => {
-    this.applyStyleButtons(args);
-
     return await this.callService.callApi('editMessageText', args);
   };
 

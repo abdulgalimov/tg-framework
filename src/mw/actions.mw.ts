@@ -28,12 +28,7 @@ export class ActionsMw<User extends TgUser> extends BaseMw<User> implements Midd
 
     await this.getAction(ctx);
 
-    if (ctx.action) {
-      ctx.span.setAttributes({
-        actionId: ctx.action.meta.id,
-        actionKey: ctx.action.meta.fullKey,
-      });
-    } else {
+    if (!ctx.action) {
       this.logger.error('Fail get action from tg update');
     }
   }

@@ -1,4 +1,3 @@
-import type { Span } from '@opentelemetry/api';
 
 import type { ActionItem } from './types';
 
@@ -14,20 +13,6 @@ export interface TgLogger {
 export interface TgLoggerFactory {
   create(name: string): TgLogger;
 }
-
-// Otel/Tracing
-export interface TgOtel {
-  createRootSpan(name: string): Span;
-  createChildSpan(name: string, options?: { attributes?: Record<string, unknown> }): Span;
-  executeInSpan<T>(span: Span, fn: () => Promise<T>): Promise<T>;
-  getActiveSpan(): Span | undefined;
-}
-
-export type ApplyTraceForInstance = (options: {
-  kindName: string;
-  instance: Record<string, unknown>;
-  otel: TgOtel;
-}) => void;
 
 // Locale
 export interface TgLocale {

@@ -8,7 +8,6 @@ import type {
   KvStore,
   TelegramStore,
   TgLoggerFactory,
-  TgOtel,
   TgUser,
 } from '../interfaces';
 import type { PayloadService } from '../payload';
@@ -24,7 +23,6 @@ export type MwServiceOptions<User extends TgUser> = {
   contextService: ContextService<User>;
   store: TelegramStore;
   kv: KvStore;
-  otel: TgOtel;
   loggerFactory: TgLoggerFactory;
   inlineQueryResolver?: InlineQueryResolver | undefined;
 };

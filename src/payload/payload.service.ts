@@ -7,13 +7,7 @@ import { v4 as uuidV4 } from 'uuid';
 import type { ActionsService } from '../actions';
 import type { TelegramDebugConfig } from '../config';
 import type { Context, UserContextAny } from '../context';
-import type {
-  ApplyTraceForInstance,
-  KeyboardPayloadsStore,
-  TgLoggerFactory,
-  TgOtel,
-  TgUser,
-} from '../interfaces';
+import type { KeyboardPayloadsStore, TgLoggerFactory, TgUser } from '../interfaces';
 import type {
   ActionItem,
   ActionItemPayload,
@@ -48,18 +42,10 @@ export class PayloadService<User extends TgUser> {
     public readonly actionsService: ActionsService,
     private readonly keyboardPayloads: KeyboardPayloadsStore,
     debugConfig: TelegramDebugConfig,
-    otel: TgOtel,
     loggerFactory: TgLoggerFactory,
-    applyTrace?: ApplyTraceForInstance,
   ) {
     this.logger = loggerFactory.create(PayloadService.name);
     this.logger.setLogLevel(debugConfig.payloadDecoderLevel);
-
-    applyTrace?.({
-      kindName: 'payload',
-      instance: this as unknown as Record<string, unknown>,
-      otel,
-    });
   }
 
   public init(username: string) {

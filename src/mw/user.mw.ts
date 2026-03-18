@@ -3,9 +3,6 @@ import type { TgUser } from '../interfaces';
 import { BaseMw } from './base.mw';
 import type { MwServiceOptions } from './types';
 
-const ATTR_DB_COLLECTION_NAME = 'db.collection.name';
-const ATTR_DB_OPERATION_NAME = 'db.operation.name';
-
 export class UserMw<User extends TgUser> extends BaseMw<User> {
   public constructor(options: MwServiceOptions<User>) {
     super(UserMw.name, options);
@@ -17,15 +14,6 @@ export class UserMw<User extends TgUser> extends BaseMw<User> {
   }
 
   private async getUser(ctx: ContextAny) {
-    const activeSpan = this.otel.getActiveSpan();
-
-    if (activeSpan) {
-      activeSpan.setAttributes({
-        [ATTR_DB_COLLECTION_NAME]: 'users',
-        [ATTR_DB_OPERATION_NAME]: 'createOrUpdate',
-      });
-    }
-
     const { update } = ctx;
     const from =
       update.message?.from ||

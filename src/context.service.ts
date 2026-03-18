@@ -4,14 +4,7 @@ import type { Message } from '@grammyjs/types/message';
 import type { ApiService } from './api.service';
 import { getContext, type UserContextAny } from './context';
 import { CallApiError, TgErrorCodes } from './errors';
-import type {
-  ApplyTraceForInstance,
-  KvStore,
-  TgLocale,
-  TgLoggerFactory,
-  TgOtel,
-  TgUser,
-} from './interfaces';
+import type { KvStore, TgLocale, TgLoggerFactory, TgUser } from './interfaces';
 import type { PayloadService } from './payload';
 import type {
   AllActionsTree,
@@ -37,17 +30,9 @@ export class ContextService<User extends TgUser> {
     private readonly localeService: TgLocale,
     private readonly payloadService: PayloadService<User>,
     private readonly kv: KvStore,
-    otel: TgOtel,
     loggerFactory: TgLoggerFactory,
-    applyTrace?: ApplyTraceForInstance,
   ) {
     this.logger = loggerFactory.create(ContextService.name);
-
-    applyTrace?.({
-      kindName: 'context',
-      instance: this as unknown as Record<string, unknown>,
-      otel,
-    });
   }
 
   public get<C extends UserContextAny<User> = UserContextAny<User>>() {

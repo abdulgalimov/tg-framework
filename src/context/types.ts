@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { User as TgFrom, Update } from '@grammyjs/types';
-import type { Span } from '@opentelemetry/api';
 
 import type { TgUser } from '../interfaces';
 import type { InferPayloads, UnknownPayload } from '../payload';
@@ -42,8 +41,6 @@ export type Context<
   from: TgFrom;
   user: TUser;
   inline: InlineData;
-
-  span: Span;
 };
 
 export type ContextAny = Context<{ action: ActionItem }>;

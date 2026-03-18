@@ -9,9 +9,7 @@ import {
   type ActionItem,
   type ActionItemPayload,
   type ConfirmContextOptions,
-  type CustomInlineButton,
   type PagingOptions,
-  QzarButtonStyles,
   SwitchButtonMode,
   type SwitchButtonsOptions,
 } from './types';
@@ -208,7 +206,7 @@ export class KeyboardService<User extends TgUser> {
     return this.backButton(options);
   }
 
-  public backButton<A extends ActionItem>(options: BackButtonOptions<A>): CustomInlineButton {
+  public backButton<A extends ActionItem>(options: BackButtonOptions<A>): InlineKeyboardButton {
     let callbackData: string;
     if ('callbackData' in options) {
       callbackData = options.callbackData;
@@ -218,13 +216,12 @@ export class KeyboardService<User extends TgUser> {
     return {
       text: this.locale.text('back-button'),
       callback_data: callbackData,
-      qzarStyle: QzarButtonStyles.Back,
     };
   }
 
   public refreshButton<A extends ActionItem>(
     options?: RefreshButtonOptions<A>,
-  ): CustomInlineButton {
+  ): InlineKeyboardButton {
     const ctx = this.contextService.get();
 
     const optionsSafe = options || {};
@@ -241,7 +238,6 @@ export class KeyboardService<User extends TgUser> {
     return {
       text: this.locale.text('refresh-button'),
       callback_data: callbackData,
-      qzarStyle: QzarButtonStyles.Refresh,
     };
   }
 }

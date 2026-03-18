@@ -3,19 +3,17 @@ import type { Update } from '@grammyjs/types';
 import { ActionsService } from './actions';
 import { ApiService } from './api.service';
 import { CallService } from './call.service';
-import type { TelegramConfig, TelegramDebugConfig } from './config';
+import type { TelegramConfig } from './config';
 import { type ContextAny, createContext } from './context';
 import { ContextService } from './context.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
 import type {
-  ApplyTraceForInstance,
   InlineQueryResolver,
   KvStore,
   TelegramStore,
   TgLocale,
   TgLoggerFactory,
-  TgOtel,
   TgUser,
 } from './interfaces';
 import { KeyboardService } from './keyboard.service';
@@ -28,10 +26,8 @@ export type TelegramOptions = {
   store: TelegramStore;
   locale: TgLocale;
   actionsTree: AllActionsTree;
-  otel: TgOtel;
   kv: KvStore;
   loggerFactory: TgLoggerFactory;
-  applyTrace?: ApplyTraceForInstance;
   inlineQueryResolver?: InlineQueryResolver;
 };
 
@@ -60,22 +56,14 @@ export class Telegram<User extends TgUser> {
 
   private handler: UpdateHandler | undefined;
 
-  private readonly otel: TgOtel;
-
   private _username: string | undefined;
 
-  public constructor(
-    telegramConfig: TelegramConfig,
-    debugConfig: TelegramDebugConfig,
-    options: TelegramOptions,
-  ) {
-    const { store, locale, actionsTree, otel, kv, loggerFactory, applyTrace, inlineQueryResolver } =
-      options;
+  public constructor(telegramConfig: TelegramConfig, options: TelegramOptions) {
+    const { debug: debugConfig } = telegramConfig;
+    const { store, locale, actionsTree, kv, loggerFactory, inlineQueryResolver } = options;
 
     this.logger = loggerFactory.create(Telegram.name);
     this.logger.setLogLevel(debugConfig.telegramUpdateLevel);
-
-    this.otel = otel;
 
     this.callService = new CallService(telegramConfig, debugConfig, loggerFactory);
 
@@ -85,12 +73,10 @@ export class Telegram<User extends TgUser> {
       this.actions,
       store.keyboardPayloads,
       debugConfig,
-      otel,
       loggerFactory,
-      applyTrace,
     );
 
-    this.api = new ApiService(this.callService, otel, applyTrace);
+    this.api = new ApiService(this.callService);
 
     this.context = new ContextService<User>(
       actionsTree,
@@ -98,9 +84,7 @@ export class Telegram<User extends TgUser> {
       locale,
       this.payload,
       kv,
-      otel,
       loggerFactory,
-      applyTrace,
     );
 
     this.payload.contextService = this.context;
@@ -128,7 +112,6 @@ export class Telegram<User extends TgUser> {
       formService: this.form,
       inlineService: this.inline,
       contextService: this.context,
-      otel,
       loggerFactory,
       inlineQueryResolver,
     });
@@ -158,20 +141,11 @@ export class Telegram<User extends TgUser> {
   }
 
   private async updateHandler(update: Update) {
-    const rootSpan = this.otel.createRootSpan('TelegramUpdate');
-
-    await this.otel.executeInSpan(rootSpan, async () => {
-      rootSpan.setAttributes({
-        updateId: update.update_id,
-      });
-
-      const store = {
-        update,
-        flags: {},
-        span: rootSpan,
-      };
-      await createContext(store as ContextAny, (ctx) => this.updateWithContext(ctx));
-    });
+    const store = {
+      update,
+      flags: {},
+    };
+    await createContext(store as ContextAny, (ctx) => this.updateWithContext(ctx));
   }
 
   private async updateWithContext(ctx: ContextAny) {
