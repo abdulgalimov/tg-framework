@@ -1,5 +1,4 @@
-import type { InlineKeyboardButton, InlineKeyboardMarkup } from '@grammyjs/types/markup';
-import type { Message } from '@grammyjs/types/message';
+import type { Message, InlineKeyboardButton, InlineKeyboardMarkup } from '@grammyjs/types';
 
 import type { ApiService } from './api.service';
 import { getContext, type UserContextAny } from './context';

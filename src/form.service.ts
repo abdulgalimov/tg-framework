@@ -1,4 +1,4 @@
-import type { InlineKeyboardMarkup } from '@grammyjs/types/markup';
+import type { InlineKeyboardMarkup } from '@grammyjs/types';
 
 import type { ActionsService } from './actions';
 import type { ContextService } from './context.service';

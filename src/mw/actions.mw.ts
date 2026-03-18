@@ -1,5 +1,4 @@
-import type { CallbackQuery, InlineQuery } from '@grammyjs/types';
-import type { ChosenInlineResult } from '@grammyjs/types/inline';
+import type { ChosenInlineResult, CallbackQuery, InlineQuery } from '@grammyjs/types';
 
 import type { Context, ContextAny } from '../context';
 import type { TgUser } from '../interfaces';

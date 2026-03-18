@@ -1,14 +1,22 @@
 import type { CallService } from './call.service';
-import {
-  GetArgsFromMethod,
-  GetReturnFromMethod,
-  type SendDocumentArgs,
-  type SendFile,
-  type SendPhotoArgs,
-  type TelegramMethod,
-} from './types';
-import { ApiMethods } from '@grammyjs/types/methods';
-import { Message } from '@grammyjs/types/message';
+import { GetArgsFromMethod, GetReturnFromMethod, type SendFile } from './types';
+import { ApiMethods } from '@grammyjs/types';
+
+type FileOrString = SendFile | string;
+type SendFileArgs = { photo?: FileOrString; document?: FileOrString };
+const fileFields = ['photo', 'document'] as const;
+
+function extractFile(args: SendFileArgs) {
+  for (const field of fileFields) {
+    if (field in args) {
+      return {
+        file: args[field]!,
+        fileField: field,
+      };
+    }
+  }
+  return null;
+}
 
 export class ApiService {
   private readonly callService: CallService;
@@ -16,19 +24,15 @@ export class ApiService {
     this.callService = callService;
   }
 
-  private createFormData(args: SendDocumentArgs | SendPhotoArgs): FormData {
-    let file: SendFile | string;
-    let fileField: 'document' | 'photo';
-    if ('document' in args) {
-      file = args.document;
-      fileField = 'document';
-    } else {
-      file = args.photo;
-      fileField = 'photo';
+  private createFormData(args: SendFileArgs): any {
+    let extracted = extractFile(args);
+    if (!extracted) {
+      return args;
     }
+    const { file, fileField } = extracted;
 
     if (typeof file === 'string') {
-      throw new Error('Invalid file format');
+      return args;
     }
 
     const formData = new FormData();
@@ -47,31 +51,18 @@ export class ApiService {
     return formData;
   }
 
-  public sendDocument: TelegramMethod<'sendDocument'> = async (args) => {
-    if (typeof args.document === 'object') {
-      const formData = this.createFormData(args);
-
-      return await this.callService.callApi('sendDocument', formData);
-    } else {
-      return await this.callService.callApi('sendDocument', args);
-    }
-  };
-
-  public sendPhoto: TelegramMethod<'sendPhoto'> = async (args) => {
-    if (typeof args.photo === 'object') {
-      const formData = this.createFormData(args);
-
-      return await this.callService.callApi('sendPhoto', formData);
-    } else {
-      return await this.callService.callApi('sendPhoto', args);
-    }
-  };
-
   public async call<Method extends keyof ApiMethods<SendFile>>(
     method: Method,
     ...args: GetArgsFromMethod<Method> extends null ? [] : [GetArgsFromMethod<Method>]
   ): Promise<GetReturnFromMethod<Method>> {
-    const arg = args[0];
-    return await this.callService.callApi(method, arg as object);
+    let arg: any = args[0];
+    if (typeof arg === 'object' && arg !== null) {
+      fileFields.forEach((field) => {
+        if (field in arg) {
+          arg = this.createFormData(arg);
+        }
+      });
+    }
+    return (await this.callService.callApi(method, arg as object)) as GetReturnFromMethod<Method>;
   }
 }

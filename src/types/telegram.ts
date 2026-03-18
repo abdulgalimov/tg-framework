@@ -1,17 +1,10 @@
-import type { Update } from '@grammyjs/types';
-import type { Message } from '@grammyjs/types/message';
-import type { ApiMethods } from '@grammyjs/types/methods';
+import type { Message, ApiMethods, Update } from '@grammyjs/types';
 
 export type SendFile = {
   buffer: Buffer;
   filename: string;
   contentType: string;
 };
-
-export type TelegramMethod<MethodName extends keyof ApiMethods<SendFile>> =
-  ApiMethods<SendFile>[MethodName] extends (args: infer Args) => infer Return
-    ? (args: Args) => Promise<Return>
-    : never;
 
 export type GetArgsFromMethod<MethodName extends keyof ApiMethods<SendFile>> =
   ApiMethods<SendFile>[MethodName] extends () => unknown

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 
-import type { InlineKeyboardButton } from '@grammyjs/types/markup';
+import type { InlineKeyboardButton } from '@grammyjs/types';
 
 import type { ContextService } from './context.service';
 import type { TgLocale, TgUser } from './interfaces';
