@@ -1,18 +1,20 @@
 import type { ApiService } from './api.service';
-import type { ContextService } from './context.service';
+import type { RequestService } from './request.service';
 import type { KvStore, TgUser } from './interfaces';
 import type { CreateInlineOptions, InlineData, InlineExtraOptions } from './types';
+import { InitType } from './types/init';
+import { ContextService } from './context.service';
 
 const inlineReg = /^(?<query>\w+)(\s+(?<variables>.+))?/;
 
 const inlineDataTimeout = 15 * 60; // 15 min
 
-export class InlineService<User extends TgUser> {
+export class InlineService<T extends InitType> {
   private readonly kv: KvStore;
 
   public constructor(
+    private readonly contextService: ContextService<T>,
     private readonly apiService: ApiService,
-    private readonly contextService: ContextService<User>,
     kv: KvStore,
   ) {
     this.kv = kv;

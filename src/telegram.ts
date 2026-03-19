@@ -5,53 +5,53 @@ import { ApiService } from './api.service';
 import { CallService } from './call.service';
 import type { TelegramConfig } from './config';
 import { type ContextAny, createContext } from './context';
-import { ContextService } from './context.service';
+import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
-import type {
-  InlineQueryResolver,
-  KvStore,
-  TelegramStore,
-  TgLocale,
-  TgLoggerFactory,
-  TgUser,
-} from './interfaces';
+import type { InlineQueryResolver, KvStore, TelegramStore, TgLoggerFactory } from './interfaces';
 import { KeyboardService } from './keyboard.service';
 import { MiddlewaresService } from './mw';
 import { PayloadService } from './payload';
 import type { AllActionsTree, UpdateHandler } from './types';
 import { UpdateService } from './update.service';
+import { LocaleService, LocaleServiceOptions } from './locale.service';
+import { InitType } from './types/init';
+import { ContextService } from './context.service';
 
 export type TelegramOptions = {
   store: TelegramStore;
-  locale: TgLocale;
   actionsTree: AllActionsTree;
   kv: KvStore;
   loggerFactory: TgLoggerFactory;
   inlineQueryResolver?: InlineQueryResolver;
   handler: UpdateHandler;
+  locale: LocaleServiceOptions;
 };
 
-export class Telegram<User extends TgUser> {
+export class Telegram<T extends InitType> {
   private readonly callService: CallService;
 
   public readonly actions: ActionsService;
 
-  private readonly middlewaresService: MiddlewaresService<User>;
+  private readonly middlewaresService: MiddlewaresService<T>;
 
   private readonly updateService: UpdateService;
 
-  public readonly payload: PayloadService<User>;
+  public readonly context: ContextService<T>;
+
+  public readonly payload: PayloadService<T['user']>;
 
   public readonly api: ApiService;
 
-  public readonly form: FormService<User>;
+  public readonly form: FormService<T>;
 
-  public readonly context: ContextService<User>;
+  public readonly request: RequestService<T>;
 
-  public readonly inline: InlineService<User>;
+  public readonly inline: InlineService<T>;
 
-  public readonly keyboard: KeyboardService<User>;
+  public readonly keyboard: KeyboardService<T>;
+
+  public readonly locale: LocaleService<T['locale']>;
 
   private readonly logger;
 
@@ -67,6 +67,10 @@ export class Telegram<User extends TgUser> {
     this.logger.setLogLevel(debugConfig.telegramUpdateLevel);
     this.handler = handler;
 
+    this.context = new ContextService();
+
+    this.locale = new LocaleService<T['locale']>(locale);
+
     this.callService = new CallService(telegramConfig, debugConfig, loggerFactory);
 
     this.actions = new ActionsService(actionsTree, store.actions);
@@ -80,40 +84,41 @@ export class Telegram<User extends TgUser> {
 
     this.api = new ApiService(this.callService);
 
-    this.context = new ContextService<User>(
+    this.request = new RequestService<T>(
+      this.context,
       actionsTree,
       this.api,
-      locale,
+      this.locale,
       this.payload,
       kv,
       loggerFactory,
     );
-
-    this.payload.contextService = this.context;
 
     this.form = new FormService(
       this.context,
+      this.request,
       this.actions,
       this.payload,
-      locale,
+      this.locale,
       kv,
       loggerFactory,
     );
 
-    this.inline = new InlineService(this.api, this.context, kv);
+    this.inline = new InlineService(this.context, this.api, kv);
 
-    this.keyboard = new KeyboardService(this.context, this.payload, locale);
+    this.keyboard = new KeyboardService(this.context, this.request, this.payload, this.locale);
 
-    this.middlewaresService = new MiddlewaresService<User>({
+    this.middlewaresService = new MiddlewaresService<T>({
       store,
       kv,
       actionsTree,
       apiService: this.api,
       actionsService: this.actions,
       payloadService: this.payload,
+      contextService: this.context,
       formService: this.form,
       inlineService: this.inline,
-      contextService: this.context,
+      requestService: this.request,
       loggerFactory,
       inlineQueryResolver,
     });
@@ -161,7 +166,7 @@ export class Telegram<User extends TgUser> {
       await this.tryUpdate(ctx);
 
       if (update.callback_query && !ctx.flags.callbackAnswered) {
-        await this.context.answerCallbackQuery();
+        await this.request.answerCallbackQuery();
       }
     } catch (error) {
       this.logger.error('Telegram update error', {

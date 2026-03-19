@@ -2,7 +2,7 @@
 
 import type { InlineKeyboardButton } from '@grammyjs/types';
 
-import type { ContextService } from './context.service';
+import type { RequestService } from './request.service';
 import type { TgLocale, TgUser } from './interfaces';
 import type { BackData, InferPayloads, PayloadService } from './payload';
 import {
@@ -13,6 +13,8 @@ import {
   SwitchButtonMode,
   type SwitchButtonsOptions,
 } from './types';
+import { InitType } from './types/init';
+import { ContextService } from './context.service';
 
 type BackButtonOptionsExt<A extends ActionItem> = {
   labelKey?: string;
@@ -50,15 +52,16 @@ type SwitchIcons = {
   Current: string;
 };
 
-export class KeyboardService<User extends TgUser> {
+export class KeyboardService<T extends InitType> {
   public readonly maxButtons: number = 7;
 
   private pagingIcons: PagingIcons = { PrevButton: '<<', NextButton: '>>', Current: '.' };
   private switchIcons: SwitchIcons = { RadioButtonOn: '(x)', RadioButtonOff: '( )', Current: '.' };
 
   public constructor(
-    protected readonly contextService: ContextService<User>,
-    protected readonly payloadService: PayloadService<User>,
+    private readonly contextService: ContextService<T>,
+    protected readonly requestService: RequestService<T>,
+    protected readonly payloadService: PayloadService<T['user']>,
     protected readonly locale: TgLocale,
   ) {}
 
@@ -69,7 +72,7 @@ export class KeyboardService<User extends TgUser> {
 
   public async confirmMenu(options: ConfirmContextOptions) {
     const { action, text, yesLabel, noLabel } = options;
-    await this.contextService.reply({
+    await this.requestService.reply({
       text,
       reply_markup: {
         inline_keyboard: [

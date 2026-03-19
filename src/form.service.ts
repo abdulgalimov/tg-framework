@@ -1,20 +1,22 @@
 import type { InlineKeyboardMarkup } from '@grammyjs/types';
 
 import type { ActionsService } from './actions';
-import type { ContextService } from './context.service';
+import type { RequestService } from './request.service';
 import type { KvStore, TgLocale, TgLoggerFactory, TgUser } from './interfaces';
 import type { PayloadService, UnknownPayload } from './payload';
 import type { ActionForm, CreateFormOptions, Form, ReplyArgsContext, ReplyOptions } from './types';
+import { InitType } from './types/init';
+import { ContextService } from './context.service';
 
-export class FormService<User extends TgUser> {
+export class FormService<T extends InitType> {
   // Delete from history the messages entered by the user during the token search process.
   private readonly DELETE_HISTORY_MESSAGES = true;
 
-  private readonly contextService: ContextService<User>;
+  private readonly requestService: RequestService<T>;
 
   private readonly actionsService: ActionsService;
 
-  private readonly payloadService: PayloadService<User>;
+  private readonly payloadService: PayloadService<T['user']>;
 
   private readonly localeService: TgLocale;
 
@@ -23,14 +25,15 @@ export class FormService<User extends TgUser> {
   private readonly logger;
 
   public constructor(
-    contextService: ContextService<User>,
+    private readonly contextService: ContextService<T>,
+    requestService: RequestService<T>,
     actionsService: ActionsService,
-    payloadService: PayloadService<User>,
+    payloadService: PayloadService<T['user']>,
     localeService: TgLocale,
     kv: KvStore,
     loggerFactory: TgLoggerFactory,
   ) {
-    this.contextService = contextService;
+    this.requestService = requestService;
     this.actionsService = actionsService;
     this.payloadService = payloadService;
     this.localeService = localeService;
@@ -87,7 +90,7 @@ export class FormService<User extends TgUser> {
 
     if (deleteMessages.length) {
       try {
-        await this.contextService.delete(deleteMessages);
+        await this.requestService.delete(deleteMessages);
       } catch (error) {
         this.logger.error('delete', {
           deleteMessages,
@@ -103,7 +106,7 @@ export class FormService<User extends TgUser> {
     const ctx = this.contextService.get();
     const form = ctx.form as Form;
 
-    const result = await this.contextService.reply(args, {
+    const result = await this.requestService.reply(args, {
       noUpdateLastMessage: true,
       sendMode: true,
     });
@@ -135,7 +138,7 @@ export class FormService<User extends TgUser> {
 
     if (form.lastMessageId) {
       try {
-        await this.contextService.delete(form.lastMessageId);
+        await this.requestService.delete(form.lastMessageId);
       } catch (error) {
         this.logger.error('delete', {
           messageId: form.lastMessageId,
@@ -144,7 +147,7 @@ export class FormService<User extends TgUser> {
       }
     }
 
-    const result = await this.contextService.reply(args, {
+    const result = await this.requestService.reply(args, {
       ...options,
       noUpdateLastMessage: true,
     });

@@ -36,7 +36,7 @@ export class PayloadService<User extends TgUser> {
 
   private username: string = '';
 
-  public contextService!: Ctx<User>;
+  public requestService!: Ctx<User>;
 
   public constructor(
     public readonly actionsService: ActionsService,
@@ -140,7 +140,7 @@ export class PayloadService<User extends TgUser> {
   }
 
   public encode<A extends ActionItem>(action: A, data?: InferPayloads<A>): string {
-    const ctx = this.contextService.get<Context<{ action: ActionItemPayload }, User>>();
+    const ctx = this.requestService.get<Context<{ action: ActionItemPayload }, User>>();
 
     // remove newMessage from ctx payload
     const { _newMessage, ...otherCtxPayload } = ctx.payload || {};
@@ -166,7 +166,7 @@ export class PayloadService<User extends TgUser> {
   public encodeUrl<A extends ActionItemPayload>(action: A, data: InferPayloads<A>): string;
   public encodeUrl<A extends ActionItem>(action: A): string;
   public encodeUrl<A extends ActionItem>(action: A, data?: UnknownPayload): string {
-    const ctx = this.contextService.get();
+    const ctx = this.requestService.get();
 
     let messageId = 0;
     if (ctx?.update?.callback_query?.message) {

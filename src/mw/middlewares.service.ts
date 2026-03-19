@@ -2,11 +2,12 @@ import type { TgUser } from '../interfaces';
 import { ActionsMw } from './actions.mw';
 import type { Middleware, MwServiceOptions } from './types';
 import { UserMw } from './user.mw';
+import { InitType } from '../types/init';
 
-export class MiddlewaresService<User extends TgUser> {
+export class MiddlewaresService<T extends InitType> {
   private middlewares: Middleware[];
 
-  public constructor(options: MwServiceOptions<User>) {
+  public constructor(options: MwServiceOptions<T>) {
     this.middlewares = [new UserMw(options), new ActionsMw(options)];
   }
 

@@ -2,9 +2,10 @@ import type { ContextAny } from '../context';
 import type { TgUser } from '../interfaces';
 import { BaseMw } from './base.mw';
 import type { MwServiceOptions } from './types';
+import { InitType } from '../types/init';
 
-export class UserMw<User extends TgUser> extends BaseMw<User> {
-  public constructor(options: MwServiceOptions<User>) {
+export class UserMw<T extends InitType> extends BaseMw<T> {
+  public constructor(options: MwServiceOptions<T>) {
     super(UserMw.name, options);
   }
   public async execute(): Promise<void> {

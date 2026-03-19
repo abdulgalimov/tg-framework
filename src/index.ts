@@ -3,7 +3,7 @@ export * from './api.service';
 export * from './call.service';
 export * from './config';
 export * from './context';
-export * from './context.service';
+export * from './request.service';
 export * from './errors';
 export * from './form.service';
 export * from './inline.service';

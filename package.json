@@ -4,6 +4,9 @@
   "description": "TypeScript framework for building Telegram bots",
   "type": "module",
   "main": "./dist/index.js",
+  "bin": {
+    "tg-framework": "./dist/cli.js"
+  },
   "types": "./dist/index.d.ts",
   "files": [
     "./dist/**",

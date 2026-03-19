@@ -1,29 +1,33 @@
 import type { ActionsService } from '../actions';
 import type { ApiService } from '../api.service';
-import type { ContextService } from '../context.service';
+import type { RequestService } from '../request.service';
 import type { FormService } from '../form.service';
 import type { InlineService } from '../inline.service';
-import type { InlineQueryResolver, KvStore, TelegramStore, TgLogger, TgUser } from '../interfaces';
+import type { InlineQueryResolver, KvStore, TelegramStore, TgLogger } from '../interfaces';
 import type { PayloadService } from '../payload';
 import type { AllActionsTree } from '../types';
 import type { Middleware, MwServiceOptions } from './types';
+import { InitType } from '../types/init';
+import { ContextService } from '../context.service';
 
-export abstract class BaseMw<User extends TgUser> implements Middleware {
+export abstract class BaseMw<T extends InitType> implements Middleware {
   protected actionsTree: AllActionsTree;
 
   protected readonly kv: KvStore;
 
   protected readonly apiService: ApiService;
 
-  protected readonly formService: FormService<User>;
+  protected readonly formService: FormService<T>;
 
   protected readonly actionsService: ActionsService;
 
-  protected readonly payloadService: PayloadService<User>;
+  protected readonly payloadService: PayloadService<T['user']>;
 
-  protected readonly inlineService: InlineService<User>;
+  protected readonly inlineService: InlineService<T>;
 
-  protected readonly contextService: ContextService<User>;
+  protected readonly requestService: RequestService<T>;
+
+  protected readonly contextService: ContextService<T>;
 
   protected readonly store: TelegramStore;
 
@@ -31,7 +35,7 @@ export abstract class BaseMw<User extends TgUser> implements Middleware {
 
   protected logger: TgLogger;
 
-  protected constructor(name: string, options: MwServiceOptions<User>) {
+  protected constructor(name: string, options: MwServiceOptions<T>) {
     this.kv = options.kv;
 
     this.actionsTree = options.actionsTree;
@@ -40,6 +44,7 @@ export abstract class BaseMw<User extends TgUser> implements Middleware {
     this.actionsService = options.actionsService;
     this.payloadService = options.payloadService;
     this.inlineService = options.inlineService;
+    this.requestService = options.requestService;
     this.contextService = options.contextService;
     this.store = options.store;
     this.inlineQueryResolver = options.inlineQueryResolver;

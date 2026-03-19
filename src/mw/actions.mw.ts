@@ -13,13 +13,14 @@ import type {
 } from '../types';
 import { BaseMw } from './base.mw';
 import type { Middleware, MwServiceOptions } from './types';
+import { InitType } from '../types/init';
 
 const commandsReg = /^(?<command>\/\w+)(\s+(?<value>.+))?$/;
 
 const startCommandReg = /^\/start (?<param>.+)$/;
 
-export class ActionsMw<User extends TgUser> extends BaseMw<User> implements Middleware {
-  public constructor(options: MwServiceOptions<User>) {
+export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middleware {
+  public constructor(options: MwServiceOptions<T>) {
     super(ActionsMw.name, options);
   }
   public async execute(): Promise<void> {
