@@ -18,6 +18,8 @@ import type {
 import type { BackData, InferPayloads } from './schema';
 import { fullKeys, fullValues, shortKeys, shortValues } from './shorts';
 import type { PrepareKeyboard, UnknownPayload } from './types';
+import { ContextService } from '../context.service';
+import { InitType } from '../types/init';
 
 const CurrenVersion = 'v1';
 
@@ -27,18 +29,13 @@ const Base64Prefix = 'b64_';
 
 const forceEncodeSymbols = ['%', '.'];
 
-type Ctx<User extends TgUser> = {
-  get: <C extends UserContextAny<User> = UserContextAny<User>>() => C;
-};
-
-export class PayloadService<User extends TgUser> {
+export class PayloadService<T extends InitType> {
   private readonly logger;
 
   private username: string = '';
 
-  public requestService!: Ctx<User>;
-
   public constructor(
+    private readonly contextService: ContextService<T>,
     public readonly actionsService: ActionsService,
     private readonly keyboardPayloads: KeyboardPayloadsStore,
     debugConfig: TelegramDebugConfig,
@@ -140,7 +137,7 @@ export class PayloadService<User extends TgUser> {
   }
 
   public encode<A extends ActionItem>(action: A, data?: InferPayloads<A>): string {
-    const ctx = this.requestService.get<Context<{ action: ActionItemPayload }, User>>();
+    const ctx = this.contextService.get<Context<{ action: ActionItemPayload }, T['user']>>();
 
     // remove newMessage from ctx payload
     const { _newMessage, ...otherCtxPayload } = ctx.payload || {};
@@ -166,7 +163,7 @@ export class PayloadService<User extends TgUser> {
   public encodeUrl<A extends ActionItemPayload>(action: A, data: InferPayloads<A>): string;
   public encodeUrl<A extends ActionItem>(action: A): string;
   public encodeUrl<A extends ActionItem>(action: A, data?: UnknownPayload): string {
-    const ctx = this.requestService.get();
+    const ctx = this.contextService.get();
 
     let messageId = 0;
     if (ctx?.update?.callback_query?.message) {

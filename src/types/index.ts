@@ -5,3 +5,4 @@ export * from './keyboard';
 export * from './telegram';
 export * from './tg-context';
 export * from './cli-config';
+export * from './locale';

@@ -16,7 +16,7 @@ export class FormService<T extends InitType> {
 
   private readonly actionsService: ActionsService;
 
-  private readonly payloadService: PayloadService<T['user']>;
+  private readonly payloadService: PayloadService<T>;
 
   private readonly localeService: TgLocale;
 
@@ -28,7 +28,7 @@ export class FormService<T extends InitType> {
     private readonly contextService: ContextService<T>,
     requestService: RequestService<T>,
     actionsService: ActionsService,
-    payloadService: PayloadService<T['user']>,
+    payloadService: PayloadService<T>,
     localeService: TgLocale,
     kv: KvStore,
     loggerFactory: TgLoggerFactory,

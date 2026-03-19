@@ -13,7 +13,7 @@ export type MwServiceOptions<T extends InitType> = {
   actionsTree: AllActionsTree;
   apiService: ApiService;
   formService: FormService<T>;
-  payloadService: PayloadService<T['user']>;
+  payloadService: PayloadService<T>;
   actionsService: ActionsService;
   inlineService: InlineService<T>;
   requestService: RequestService<T>;

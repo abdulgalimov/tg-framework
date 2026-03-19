@@ -1,47 +1,42 @@
-import { HTMLFormat } from './html-format';
+import { HTMLFormat, HtmlOptions } from './html-format';
+import { LocaleOptions, LocaleTypesTemplate } from '../types';
 
-export type HtmlOptions = {
-  bold?: boolean | null;
-  italic?: boolean | null;
-  code?: boolean | null;
-  pre?: boolean | null;
-  url?: string | null;
+type LocaleService<Types extends LocaleTypesTemplate> = {
+  text<Key extends keyof Types>(key: Key, args?: LocaleOptions<Types[Key]['args']>): string;
+  applyHtml(text: string, options: HtmlOptions): string;
 };
 
-export class TextBuilder {
+export class TextBuilder<Types extends LocaleTypesTemplate> {
   private readonly lines: string[] = [];
 
   public constructor(
+    private readonly localeService: LocaleService<Types>,
     private readonly htmlOptions?: HtmlOptions,
-    private readonly parent?: TextBuilder,
+    private readonly parent?: TextBuilder<Types>,
   ) {}
 
-  private htmlFormat(text: string, html: HtmlOptions) {
-    let formattedText: string = text;
-    if (html.bold) {
-      formattedText = HTMLFormat.bold(formattedText);
-    }
-    if (html.italic) {
-      formattedText = HTMLFormat.italic(formattedText);
-    }
-    if (html.code) {
-      formattedText = HTMLFormat.code(formattedText);
-    }
-    if (html.pre) {
-      formattedText = HTMLFormat.pre(formattedText);
-    }
-    if (html.url) {
-      formattedText = HTMLFormat.link(formattedText, html.url);
-    }
-    return formattedText;
-  }
-
-  public addSection(): TextBuilder {
+  public addSection(): TextBuilder<Types> {
     return this.addText('————————————');
   }
 
-  public addText(text: string, options?: HtmlOptions): TextBuilder {
-    this.lines.push(options ? this.htmlFormat(text, options) : text);
+  public addLocale<Key extends keyof Types>(
+    textCode: Key,
+    options?: LocaleOptions<Types[Key]['args']>,
+  ): TextBuilder<Types> {
+    this.lines.push(this.localeService.text(textCode, options));
+
+    return this;
+  }
+
+  public appendLocale<Key extends keyof Types>(
+    textCode: Key,
+    options?: LocaleOptions<Types[Key]['args']>,
+  ): TextBuilder<Types> {
+    return this.appendText(this.localeService.text(textCode, options));
+  }
+
+  public addText(text: string, options?: HtmlOptions): TextBuilder<Types> {
+    this.lines.push(options ? this.localeService.applyHtml(text, options) : text);
     return this;
   }
 
@@ -49,12 +44,12 @@ export class TextBuilder {
     return this.appendText(': ');
   }
 
-  public appendText(text: string, options?: HtmlOptions): TextBuilder {
+  public appendText(text: string, options?: HtmlOptions): TextBuilder<Types> {
     if (!text) {
       return this;
     }
 
-    const formattedText = options ? this.htmlFormat(text, options) : text;
+    const formattedText = options ? this.localeService.applyHtml(text, options) : text;
 
     const lastLine = this.lines[this.lines.length - 1];
     if (lastLine === undefined) {
@@ -66,7 +61,7 @@ export class TextBuilder {
     return this;
   }
 
-  public appendButton(text: string, url: string): TextBuilder {
+  public appendButton(text: string, url: string): TextBuilder<Types> {
     return this.appendText(HTMLFormat.link(text, url));
   }
 
@@ -76,7 +71,7 @@ export class TextBuilder {
   }
 
   public addBuilder(options?: HtmlOptions) {
-    return new TextBuilder(options, this);
+    return new TextBuilder(this.localeService, options, this);
   }
 
   public complete() {
@@ -89,6 +84,6 @@ export class TextBuilder {
 
   public toString(): string {
     const text = this.lines.join('\n');
-    return this.htmlOptions ? this.htmlFormat(text, this.htmlOptions) : text;
+    return this.htmlOptions ? this.localeService.applyHtml(text, this.htmlOptions) : text;
   }
 }

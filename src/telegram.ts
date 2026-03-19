@@ -12,9 +12,9 @@ import type { InlineQueryResolver, KvStore, TelegramStore, TgLoggerFactory } fro
 import { KeyboardService } from './keyboard.service';
 import { MiddlewaresService } from './mw';
 import { PayloadService } from './payload';
-import type { AllActionsTree, UpdateHandler } from './types';
+import type { AllActionsTree, LocaleServiceOptions, UpdateHandler } from './types';
 import { UpdateService } from './update.service';
-import { LocaleService, LocaleServiceOptions } from './locale.service';
+import { LocaleService } from './locale.service';
 import { InitType } from './types/init';
 import { ContextService } from './context.service';
 
@@ -39,7 +39,7 @@ export class Telegram<T extends InitType> {
 
   public readonly context: ContextService<T>;
 
-  public readonly payload: PayloadService<T['user']>;
+  public readonly payload: PayloadService<T>;
 
   public readonly api: ApiService;
 
@@ -51,7 +51,7 @@ export class Telegram<T extends InitType> {
 
   public readonly keyboard: KeyboardService<T>;
 
-  public readonly locale: LocaleService<T['locale']>;
+  public readonly locale: LocaleService<T>;
 
   private readonly logger;
 
@@ -69,13 +69,14 @@ export class Telegram<T extends InitType> {
 
     this.context = new ContextService();
 
-    this.locale = new LocaleService<T['locale']>(locale);
+    this.locale = new LocaleService<T>(this.context, locale);
 
     this.callService = new CallService(telegramConfig, debugConfig, loggerFactory);
 
     this.actions = new ActionsService(actionsTree, store.actions);
 
     this.payload = new PayloadService(
+      this.context,
       this.actions,
       store.keyboardPayloads,
       debugConfig,

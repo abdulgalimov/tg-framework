@@ -61,7 +61,7 @@ export class KeyboardService<T extends InitType> {
   public constructor(
     private readonly contextService: ContextService<T>,
     protected readonly requestService: RequestService<T>,
-    protected readonly payloadService: PayloadService<T['user']>,
+    protected readonly payloadService: PayloadService<T>,
     protected readonly locale: TgLocale,
   ) {}
 

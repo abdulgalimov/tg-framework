@@ -30,8 +30,8 @@ export class RequestService<T extends InitType> {
     private readonly contextService: ContextService<T>,
     private readonly actionsTree: AllActionsTree,
     private readonly apiService: ApiService,
-    private readonly localeService: LocaleService<T['locale']>,
-    private readonly payloadService: PayloadService<T['user']>,
+    private readonly localeService: LocaleService<T>,
+    private readonly payloadService: PayloadService<T>,
     private readonly kv: KvStore,
     loggerFactory: TgLoggerFactory,
   ) {

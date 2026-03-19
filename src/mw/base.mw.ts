@@ -21,7 +21,7 @@ export abstract class BaseMw<T extends InitType> implements Middleware {
 
   protected readonly actionsService: ActionsService;
 
-  protected readonly payloadService: PayloadService<T['user']>;
+  protected readonly payloadService: PayloadService<T>;
 
   protected readonly inlineService: InlineService<T>;
 

@@ -1,5 +1,5 @@
 import type { TgUser } from '../interfaces';
-import { LocaleTypesTemplate } from '../locale.service';
+import { LocaleTypesTemplate } from './locale';
 
 export type InitType = {
   user: TgUser;
