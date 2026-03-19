@@ -1,4 +1,5 @@
 import type { Message, ApiMethods, Update } from '@grammyjs/types';
+import { UpdateResult } from '../actions';
 
 export type SendFile = {
   buffer: Buffer;
@@ -16,7 +17,7 @@ export type GetArgsFromMethod<MethodName extends keyof ApiMethods<SendFile>> =
 export type GetReturnFromMethod<MethodName extends keyof ApiMethods<SendFile>> =
   ApiMethods<SendFile>[MethodName] extends (args: any) => infer Return ? Return : never;
 
-export type UpdateHandler = (update: Update) => Promise<void>;
+export type UpdateHandler = () => Promise<UpdateResult>;
 
 export type EditMessageTextArgs = GetArgsFromMethod<'editMessageText'>;
 

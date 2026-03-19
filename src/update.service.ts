@@ -2,16 +2,15 @@ import type { Update } from '@grammyjs/types';
 
 import type { CallService } from './call.service';
 import type { TgLogger, TgLoggerFactory } from './interfaces';
-import type { UpdateHandler } from './types';
 
 type UpdateOptions = {
   callService: CallService;
-  handler: UpdateHandler;
+  handler: (update: Update) => Promise<void>;
   loggerFactory: TgLoggerFactory;
 };
 export class UpdateService {
   private readonly callService: CallService;
-  private readonly handler: UpdateHandler;
+  private readonly handler: (update: Update) => Promise<void>;
 
   private logger: TgLogger;
 

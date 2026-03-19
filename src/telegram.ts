@@ -29,6 +29,7 @@ export type TelegramOptions = {
   kv: KvStore;
   loggerFactory: TgLoggerFactory;
   inlineQueryResolver?: InlineQueryResolver;
+  handler: UpdateHandler;
 };
 
 export class Telegram<User extends TgUser> {
@@ -54,16 +55,17 @@ export class Telegram<User extends TgUser> {
 
   private readonly logger;
 
-  private handler: UpdateHandler | undefined;
+  private readonly handler: UpdateHandler;
 
   private _username: string | undefined;
 
   public constructor(telegramConfig: TelegramConfig, options: TelegramOptions) {
     const { debug: debugConfig } = telegramConfig;
-    const { store, locale, actionsTree, kv, loggerFactory, inlineQueryResolver } = options;
+    const { store, locale, actionsTree, kv, loggerFactory, inlineQueryResolver, handler } = options;
 
     this.logger = loggerFactory.create(Telegram.name);
     this.logger.setLogLevel(debugConfig.telegramUpdateLevel);
+    this.handler = handler;
 
     this.callService = new CallService(telegramConfig, debugConfig, loggerFactory);
 
@@ -123,9 +125,7 @@ export class Telegram<User extends TgUser> {
     });
   }
 
-  public async init(handler: UpdateHandler) {
-    this.handler = handler;
-
+  public async init() {
     await this.actions.parse();
 
     const me = await this.api.call('getMe');
@@ -158,9 +158,7 @@ export class Telegram<User extends TgUser> {
 
       await this.middlewaresService.execute();
 
-      if (this.handler) {
-        await this.handler(update);
-      }
+      await this.tryUpdate(ctx);
 
       if (update.callback_query && !ctx.flags.callbackAnswered) {
         await this.context.answerCallbackQuery();
@@ -173,6 +171,28 @@ export class Telegram<User extends TgUser> {
       });
 
       throw error;
+    }
+  }
+
+  private async tryUpdate(ctx: ContextAny, tryCount = 0): Promise<void> {
+    const result = await this.handler();
+    if (typeof result === 'object' && result.redirect) {
+      if ('action' in result.redirect) {
+        if (tryCount > 5) {
+          this.logger.error('more try redirect');
+          return;
+        }
+
+        const { action, payload, callback } = result.redirect;
+        ctx.action = action;
+
+        ctx.payload = this.payload.decodePayload(ctx.action, ctx.payload, payload);
+
+        await this.tryUpdate(ctx, tryCount + 1);
+        if (callback) {
+          await callback();
+        }
+      }
     }
   }
 
