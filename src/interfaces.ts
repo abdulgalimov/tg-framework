@@ -1,4 +1,3 @@
-
 import type { ActionItem } from './types';
 
 // Logger
@@ -65,6 +64,12 @@ export interface KvStore {
 
 // InlineQueryResolver
 export interface InlineQueryResolver {
-  resolveQuery(query: string): { action: ActionItem; payload?: Record<string, unknown> } | null;
-  resolveChosen(query: string): { action: ActionItem; payload?: Record<string, unknown> } | null;
+  resolveQuery(
+    query: string,
+    variables?: string | undefined,
+  ): { action: ActionItem; payload?: Record<string, unknown> } | null;
+  resolveChosen(
+    query: string,
+    variables?: string | undefined,
+  ): { action: ActionItem; payload?: Record<string, unknown> } | null;
 }

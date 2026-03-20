@@ -56,8 +56,11 @@ export type ActionForm = ActionItem & {
   cancel?: ActionItem;
 };
 
-export type ActionInline = ActionItem & {
-  select: ActionItem;
+export type ActionInlinePayload = {
+  query: string;
+};
+export type ActionInline = ActionItemPayload<ActionInlinePayload> & {
+  select: ActionItemPayload<ActionInlinePayload>;
 };
 
 export type ActionDelete = ActionItem & {

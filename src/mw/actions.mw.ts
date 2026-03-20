@@ -2,10 +2,11 @@ import type { ChosenInlineResult, CallbackQuery, InlineQuery } from '@grammyjs/t
 
 import type { Context, ContextAny } from '../context';
 import type { TgUser } from '../interfaces';
-import type {
+import {
   ActionCore,
   ActionForm,
   ActionInline,
+  ActionInlinePayload,
   ActionItemPayload,
   Form,
   InlineChosenPayload,
@@ -231,6 +232,9 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
     const findResult = await this.inlineService.find(inlineQuery.query);
     if (!findResult) {
       ctx.action = this.actionsTree.core.inline;
+      ctx.payload = {
+        query: inlineQuery.query,
+      } satisfies ActionInlinePayload;
       return;
     }
 
@@ -243,7 +247,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
 
     if (typeof inlineData === 'string') {
       // Try to resolve via InlineQueryResolver
-      const resolved = this.inlineQueryResolver?.resolveQuery(inlineData);
+      const resolved = this.inlineQueryResolver?.resolveQuery(inlineData, variables);
       if (resolved) {
         ctx.action = resolved.action;
       } else {
@@ -292,7 +296,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
 
     if (typeof inlineData === 'string') {
       // Try to resolve via InlineQueryResolver
-      const resolved = this.inlineQueryResolver?.resolveChosen(inlineData);
+      const resolved = this.inlineQueryResolver?.resolveChosen(inlineData, variables);
       if (resolved) {
         ctx.action = resolved.action;
       } else {
