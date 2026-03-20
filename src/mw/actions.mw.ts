@@ -1,7 +1,6 @@
-import type { ChosenInlineResult, CallbackQuery, InlineQuery } from '@grammyjs/types';
+import type { CallbackQuery, ChosenInlineResult, InlineQuery } from '@grammyjs/types';
 
 import type { Context, ContextAny } from '../context';
-import type { TgUser } from '../interfaces';
 import {
   ActionCore,
   ActionForm,
@@ -245,23 +244,6 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
       .map((v) => v.trim())
       .filter((v) => !!v);
 
-    if (typeof inlineData === 'string') {
-      // Try to resolve via InlineQueryResolver
-      const resolved = this.inlineQueryResolver?.resolveQuery(inlineData, variables);
-      if (resolved) {
-        ctx.action = resolved.action;
-      } else {
-        ctx.action = this.actionsService.tree.core.inline;
-      }
-
-      ctx.payload = {
-        query: inlineData,
-        variables: varsList.join(' '),
-        offset: inlineQuery.offset,
-      } satisfies InlineQueryPayload;
-      return;
-    }
-
     const { parameter } = inlineData;
 
     let parsedVariables = variables;
@@ -289,27 +271,13 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
     const findResult = await this.inlineService.find(chosenInline.query);
     if (!findResult) {
       ctx.action = this.actionsService.tree.core.inline.select;
+      ctx.payload = {
+        query: chosenInline.query,
+      } satisfies ActionInlinePayload;
       return;
     }
 
     const [inlineData, variables] = findResult;
-
-    if (typeof inlineData === 'string') {
-      // Try to resolve via InlineQueryResolver
-      const resolved = this.inlineQueryResolver?.resolveChosen(inlineData, variables);
-      if (resolved) {
-        ctx.action = resolved.action;
-      } else {
-        ctx.action = this.actionsService.tree.core.inline.select;
-      }
-
-      ctx.payload = {
-        query: inlineData,
-        variables,
-        selectId: chosenInline.result_id,
-      } satisfies InlineChosenPayload;
-      return;
-    }
 
     const action = this.actionsService.getById<ActionInline>(inlineData.actionId);
     ctx.action = action.select;

@@ -61,15 +61,3 @@ export interface KvStore {
   removeValue(key: string): Promise<void>;
   expire(key: string, seconds: number): Promise<void>;
 }
-
-// InlineQueryResolver
-export interface InlineQueryResolver {
-  resolveQuery(
-    query: string,
-    variables?: string | undefined,
-  ): { action: ActionItem; payload?: Record<string, unknown> } | null;
-  resolveChosen(
-    query: string,
-    variables?: string | undefined,
-  ): { action: ActionItem; payload?: Record<string, unknown> } | null;
-}

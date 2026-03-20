@@ -8,13 +8,7 @@ import { type ContextAny, createContext } from './context';
 import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
-import {
-  InlineQueryResolver,
-  KvStore,
-  TelegramStore,
-  TgLogger,
-  TgLoggerFactory,
-} from './interfaces';
+import { KvStore, TelegramStore, TgLogger, TgLoggerFactory } from './interfaces';
 import { KeyboardService } from './keyboard.service';
 import { MiddlewaresService } from './mw';
 import { PayloadService } from './payload';
@@ -33,7 +27,6 @@ export type TelegramOptions<T extends InitType> = {
 export type CreateOptions = {
   store: TelegramStore;
   kv: KvStore;
-  inlineQueryResolver?: InlineQueryResolver;
   locale: LocaleServiceOptions;
 };
 
@@ -125,7 +118,7 @@ export class Telegram<T extends InitType> {
   }
 
   public create(options: CreateOptions) {
-    const { store, locale, kv, inlineQueryResolver } = options;
+    const { store, locale, kv } = options;
 
     const { debug: debugConfig } = this.config;
 
@@ -182,7 +175,6 @@ export class Telegram<T extends InitType> {
       inlineService: this._inline,
       requestService: this._request,
       loggerFactory: this.loggerFactory,
-      inlineQueryResolver,
     });
 
     this.updateService = new UpdateService({

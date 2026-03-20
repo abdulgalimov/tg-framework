@@ -3,7 +3,7 @@ import type { ApiService } from '../api.service';
 import type { RequestService } from '../request.service';
 import type { FormService } from '../form.service';
 import type { InlineService } from '../inline.service';
-import type { InlineQueryResolver, KvStore, TelegramStore, TgLogger } from '../interfaces';
+import type { KvStore, TelegramStore, TgLogger } from '../interfaces';
 import type { PayloadService } from '../payload';
 import type { Middleware, MwServiceOptions } from './types';
 import { InitType } from '../types/init';
@@ -28,8 +28,6 @@ export abstract class BaseMw<T extends InitType> implements Middleware {
 
   protected readonly store: TelegramStore;
 
-  protected readonly inlineQueryResolver: InlineQueryResolver | undefined;
-
   protected logger: TgLogger;
 
   protected constructor(name: string, options: MwServiceOptions<T>) {
@@ -43,7 +41,6 @@ export abstract class BaseMw<T extends InitType> implements Middleware {
     this.requestService = options.requestService;
     this.contextService = options.contextService;
     this.store = options.store;
-    this.inlineQueryResolver = options.inlineQueryResolver;
 
     this.logger = options.loggerFactory.create(name);
   }

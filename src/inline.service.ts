@@ -1,6 +1,5 @@
 import type { ApiService } from './api.service';
-import type { RequestService } from './request.service';
-import type { KvStore, TgUser } from './interfaces';
+import type { KvStore } from './interfaces';
 import type { CreateInlineOptions, InlineData, InlineExtraOptions } from './types';
 import { InitType } from './types/init';
 import { ContextService } from './context.service';
@@ -74,7 +73,7 @@ export class InlineService<T extends InitType> {
     });
   }
 
-  public async find(inlineQuery: string): Promise<[InlineData | string, string] | null> {
+  public async find(inlineQuery: string): Promise<[InlineData, string] | null> {
     const ctx = this.contextService.get();
 
     const exec = inlineReg.exec(inlineQuery);
@@ -90,8 +89,7 @@ export class InlineService<T extends InitType> {
     const key = `inline:${user.id}_${query}`;
     const inlineData = await this.kv.getValue<InlineData>(key);
     if (!inlineData) {
-      // Return the raw query string for external resolution
-      return [query, variables];
+      return null;
     }
 
     await this.kv.expire(key, inlineDataTimeout);

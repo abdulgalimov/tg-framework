@@ -3,7 +3,7 @@ import type { ApiService } from '../api.service';
 import type { RequestService } from '../request.service';
 import type { FormService } from '../form.service';
 import type { InlineService } from '../inline.service';
-import type { InlineQueryResolver, KvStore, TelegramStore, TgLoggerFactory } from '../interfaces';
+import type { KvStore, TelegramStore, TgLoggerFactory } from '../interfaces';
 import type { PayloadService } from '../payload';
 import { InitType } from '../types/init';
 import { ContextService } from '../context.service';
@@ -19,7 +19,6 @@ export type MwServiceOptions<T extends InitType> = {
   store: TelegramStore;
   kv: KvStore;
   loggerFactory: TgLoggerFactory;
-  inlineQueryResolver?: InlineQueryResolver | undefined;
 };
 
 export type Middleware = {
