@@ -1,6 +1,6 @@
 {
   "name": "@abdulgalimov/tg-framework",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "TypeScript framework for building Telegram bots",
   "type": "module",
   "main": "./dist/index.js",
