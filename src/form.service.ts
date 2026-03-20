@@ -14,7 +14,7 @@ export class FormService<T extends InitType> {
 
   private readonly requestService: RequestService<T>;
 
-  private readonly actionsService: ActionsService;
+  private readonly actionsService: ActionsService<T>;
 
   private readonly payloadService: PayloadService<T>;
 
@@ -27,7 +27,7 @@ export class FormService<T extends InitType> {
   public constructor(
     private readonly contextService: ContextService<T>,
     requestService: RequestService<T>,
-    actionsService: ActionsService,
+    actionsService: ActionsService<T>,
     payloadService: PayloadService<T>,
     localeService: TgLocale,
     kv: KvStore,

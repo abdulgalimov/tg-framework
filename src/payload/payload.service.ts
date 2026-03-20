@@ -36,7 +36,7 @@ export class PayloadService<T extends InitType> {
 
   public constructor(
     private readonly contextService: ContextService<T>,
-    public readonly actionsService: ActionsService,
+    public readonly actionsService: ActionsService<T>,
     private readonly keyboardPayloads: KeyboardPayloadsStore,
     debugConfig: TelegramDebugConfig,
     loggerFactory: TgLoggerFactory,

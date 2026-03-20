@@ -1,6 +1,7 @@
 import type { ActionsStore } from '../interfaces';
-import { type ActionItem, type AllActionsTree, PayloadsField } from '../types';
+import { type ActionItem, type AllActionsTree, PayloadsField, TreeNode } from '../types';
 import { ActionMeta } from './meta';
+import { InitType } from '../types/init';
 
 const ActionItemSystemKeys = [PayloadsField];
 
@@ -8,13 +9,23 @@ type IdsMap = Record<string, number>;
 
 type ParsedData = Record<string, unknown>;
 
-export class ActionsService {
+export type Actions<T extends InitType> = {
+  readonly tree: TreeNode<T['tree']> & AllActionsTree;
+  hasById(id: number): boolean;
+  getById<Action = ActionItem>(id: number): Action;
+};
+
+export class ActionsService<T extends InitType> {
   private readonly byId: Record<number, ActionItem> = {};
 
+  public readonly tree: TreeNode<T['tree']> & AllActionsTree;
+
   public constructor(
-    private readonly actionsTree: AllActionsTree,
+    tree: T['tree'],
     private readonly store: ActionsStore,
-  ) {}
+  ) {
+    this.tree = tree as TreeNode<T['tree']> & AllActionsTree;
+  }
 
   private async getIds(actionsList: string[]): Promise<IdsMap> {
     const actions = await this.store.createAll(actionsList);
@@ -53,7 +64,7 @@ export class ActionsService {
         });
     };
 
-    parseItem(this.actionsTree, [], null);
+    parseItem(this.tree, [], null);
 
     const idsMap = await this.getIds(actionsPath);
 

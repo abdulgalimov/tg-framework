@@ -1,4 +1,3 @@
-import type { TgUser } from '../interfaces';
 import { ActionsMw } from './actions.mw';
 import type { Middleware, MwServiceOptions } from './types';
 import { UserMw } from './user.mw';

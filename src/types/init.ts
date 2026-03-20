@@ -4,4 +4,5 @@ import { LocaleTypesTemplate } from './locale';
 export type InitType = {
   user: TgUser;
   locale: LocaleTypesTemplate;
+  tree: {};
 };

@@ -64,7 +64,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
       return;
     }
 
-    ctx.action = this.actionsTree.core.none;
+    ctx.action = this.actionsService.tree.core.none;
   }
 
   private textAction(ctx: ContextAny, text: string): void {
@@ -73,7 +73,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
     if (commandExec?.groups) {
       const { command, value } = commandExec.groups;
       const commandCtx = ctx as Context<{ action: ActionCore['command'] }>;
-      commandCtx.action = this.actionsTree.core.command;
+      commandCtx.action = this.actionsService.tree.core.command;
 
       commandCtx.payload =
         value !== undefined
@@ -85,9 +85,9 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
               command: command!,
             };
     } else if (ctx.update.message?.via_bot) {
-      ctx.action = this.actionsTree.core.viaBot;
+      ctx.action = this.actionsService.tree.core.viaBot;
     } else {
-      ctx.action = this.actionsTree.core.text;
+      ctx.action = this.actionsService.tree.core.text;
     }
   }
 
@@ -221,7 +221,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
         callbackData: callbackQuery.data,
       });
 
-      ctx.action = this.actionsTree.core.none;
+      ctx.action = this.actionsService.tree.core.none;
     }
   }
 
@@ -231,7 +231,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
   ) {
     const findResult = await this.inlineService.find(inlineQuery.query);
     if (!findResult) {
-      ctx.action = this.actionsTree.core.inline;
+      ctx.action = this.actionsService.tree.core.inline;
       ctx.payload = {
         query: inlineQuery.query,
       } satisfies ActionInlinePayload;
@@ -251,7 +251,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
       if (resolved) {
         ctx.action = resolved.action;
       } else {
-        ctx.action = this.actionsTree.core.inline;
+        ctx.action = this.actionsService.tree.core.inline;
       }
 
       ctx.payload = {
@@ -288,7 +288,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
   ) {
     const findResult = await this.inlineService.find(chosenInline.query);
     if (!findResult) {
-      ctx.action = this.actionsTree.core.inline.select;
+      ctx.action = this.actionsService.tree.core.inline.select;
       return;
     }
 
@@ -300,7 +300,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
       if (resolved) {
         ctx.action = resolved.action;
       } else {
-        ctx.action = this.actionsTree.core.inline.select;
+        ctx.action = this.actionsService.tree.core.inline.select;
       }
 
       ctx.payload = {

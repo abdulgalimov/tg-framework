@@ -5,16 +5,14 @@ import type { FormService } from '../form.service';
 import type { InlineService } from '../inline.service';
 import type { InlineQueryResolver, KvStore, TelegramStore, TgLoggerFactory } from '../interfaces';
 import type { PayloadService } from '../payload';
-import type { AllActionsTree } from '../types';
 import { InitType } from '../types/init';
 import { ContextService } from '../context.service';
 
 export type MwServiceOptions<T extends InitType> = {
-  actionsTree: AllActionsTree;
   apiService: ApiService;
   formService: FormService<T>;
   payloadService: PayloadService<T>;
-  actionsService: ActionsService;
+  actionsService: ActionsService<T>;
   inlineService: InlineService<T>;
   requestService: RequestService<T>;
   contextService: ContextService<T>;

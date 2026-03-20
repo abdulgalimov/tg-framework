@@ -1,6 +1,6 @@
 import type { Update } from '@grammyjs/types';
 
-import { ActionsService } from './actions';
+import { Actions, ActionsService } from './actions';
 import { ApiService } from './api.service';
 import { CallService } from './call.service';
 import type { TelegramConfig } from './config';
@@ -8,131 +8,201 @@ import { type ContextAny, createContext } from './context';
 import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
-import type { InlineQueryResolver, KvStore, TelegramStore, TgLoggerFactory } from './interfaces';
+import {
+  InlineQueryResolver,
+  KvStore,
+  TelegramStore,
+  TgLogger,
+  TgLoggerFactory,
+} from './interfaces';
 import { KeyboardService } from './keyboard.service';
 import { MiddlewaresService } from './mw';
 import { PayloadService } from './payload';
-import type { AllActionsTree, LocaleServiceOptions, UpdateHandler } from './types';
+import { LocaleServiceOptions, UpdateHandler } from './types';
 import { UpdateService } from './update.service';
 import { LocaleService } from './locale.service';
 import { InitType } from './types/init';
 import { ContextService } from './context.service';
 
-export type TelegramOptions = {
-  store: TelegramStore;
-  actionsTree: AllActionsTree;
-  kv: KvStore;
+export type TelegramOptions<T extends InitType> = {
+  config: TelegramConfig;
+  actionsTree: T['tree'];
   loggerFactory: TgLoggerFactory;
+};
+
+export type CreateOptions = {
+  store: TelegramStore;
+  kv: KvStore;
   inlineQueryResolver?: InlineQueryResolver;
-  handler: UpdateHandler;
   locale: LocaleServiceOptions;
 };
 
 export class Telegram<T extends InitType> {
-  private readonly callService: CallService;
+  private readonly logger: TgLogger;
 
-  public readonly actions: ActionsService;
+  private readonly config: TelegramConfig;
 
-  private readonly middlewaresService: MiddlewaresService<T>;
+  private readonly actionsTree: T['tree'];
 
-  private readonly updateService: UpdateService;
+  private readonly loggerFactory: TgLoggerFactory;
 
-  public readonly context: ContextService<T>;
+  public constructor(options: TelegramOptions<T>) {
+    const { config, actionsTree, loggerFactory } = options;
 
-  public readonly payload: PayloadService<T>;
+    this.config = config;
+    this.actionsTree = actionsTree;
 
-  public readonly api: ApiService;
+    this.loggerFactory = loggerFactory;
+    this.logger = this.loggerFactory.create(Telegram.name);
+    this.logger.setLogLevel(config.debug.telegramUpdateLevel);
+  }
 
-  public readonly form: FormService<T>;
+  private _callService: CallService | undefined;
 
-  public readonly request: RequestService<T>;
+  private _actions: ActionsService<T> | undefined;
 
-  public readonly inline: InlineService<T>;
+  private middlewaresService!: MiddlewaresService<T>;
 
-  public readonly keyboard: KeyboardService<T>;
+  private updateService!: UpdateService;
 
-  public readonly locale: LocaleService<T>;
+  private _context: ContextService<T> | undefined;
 
-  private readonly logger;
+  private _payload: PayloadService<T> | undefined;
 
-  private readonly handler: UpdateHandler;
+  private _api: ApiService | undefined;
 
-  private _username: string | undefined;
+  private _form: FormService<T> | undefined;
 
-  public constructor(telegramConfig: TelegramConfig, options: TelegramOptions) {
-    const { debug: debugConfig } = telegramConfig;
-    const { store, locale, actionsTree, kv, loggerFactory, inlineQueryResolver, handler } = options;
+  private _request: RequestService<T> | undefined;
 
-    this.logger = loggerFactory.create(Telegram.name);
-    this.logger.setLogLevel(debugConfig.telegramUpdateLevel);
-    this.handler = handler;
+  private _inline: InlineService<T> | undefined;
 
-    this.context = new ContextService();
+  private _keyboard: KeyboardService<T> | undefined;
 
-    this.locale = new LocaleService<T>(this.context, locale);
+  private _locale: LocaleService<T> | undefined;
 
-    this.callService = new CallService(telegramConfig, debugConfig, loggerFactory);
+  public get context(): ContextService<T> {
+    if (!this._context) throw new Error('Telegram is not inited');
+    return this._context;
+  }
+  public get payload(): PayloadService<T> {
+    if (!this._payload) throw new Error('Telegram is not inited');
+    return this._payload;
+  }
+  public get api(): ApiService {
+    if (!this._api) throw new Error('Telegram is not inited');
+    return this._api;
+  }
 
-    this.actions = new ActionsService(actionsTree, store.actions);
+  public get inline(): InlineService<T> {
+    if (!this._inline) throw new Error('Telegram is not inited');
+    return this._inline;
+  }
 
-    this.payload = new PayloadService(
-      this.context,
-      this.actions,
+  public get actions(): Actions<T> {
+    if (!this._actions) throw new Error('Telegram is not inited');
+    return this._actions;
+  }
+
+  public get request(): RequestService<T> {
+    if (!this._request) throw new Error('Telegram is not inited');
+    return this._request;
+  }
+
+  public get locale(): LocaleService<T> {
+    if (!this._locale) throw new Error('Telegram is not inited');
+    return this._locale;
+  }
+
+  public get keyboard(): KeyboardService<T> {
+    if (!this._keyboard) throw new Error('Telegram is not inited');
+    return this._keyboard;
+  }
+
+  public get form(): FormService<T> {
+    if (!this._form) throw new Error('Telegram is not inited');
+    return this._form;
+  }
+
+  public create(options: CreateOptions) {
+    const { store, locale, kv, inlineQueryResolver } = options;
+
+    const { debug: debugConfig } = this.config;
+
+    this._context = new ContextService();
+
+    this._locale = new LocaleService<T>(this._context, locale);
+
+    this._callService = new CallService(this.config, debugConfig, this.loggerFactory);
+
+    this._actions = new ActionsService(this.actionsTree, store.actions);
+
+    this._payload = new PayloadService(
+      this._context,
+      this._actions,
       store.keyboardPayloads,
       debugConfig,
-      loggerFactory,
+      this.loggerFactory,
     );
 
-    this.api = new ApiService(this.callService);
+    this._api = new ApiService(this._callService);
 
-    this.request = new RequestService<T>(
-      this.context,
-      actionsTree,
-      this.api,
-      this.locale,
-      this.payload,
+    this._request = new RequestService<T>(
+      this._context,
+      this._actions.tree,
+      this._api,
+      this._locale,
+      this._payload,
       kv,
-      loggerFactory,
+      this.loggerFactory,
     );
 
-    this.form = new FormService(
-      this.context,
-      this.request,
-      this.actions,
-      this.payload,
-      this.locale,
+    this._form = new FormService(
+      this._context,
+      this._request,
+      this._actions,
+      this._payload,
+      this._locale,
       kv,
-      loggerFactory,
+      this.loggerFactory,
     );
 
-    this.inline = new InlineService(this.context, this.api, kv);
+    this._inline = new InlineService(this._context, this._api, kv);
 
-    this.keyboard = new KeyboardService(this.context, this.request, this.payload, this.locale);
+    this._keyboard = new KeyboardService(this._context, this._request, this._payload, this._locale);
 
     this.middlewaresService = new MiddlewaresService<T>({
       store,
       kv,
-      actionsTree,
-      apiService: this.api,
-      actionsService: this.actions,
-      payloadService: this.payload,
-      contextService: this.context,
-      formService: this.form,
-      inlineService: this.inline,
-      requestService: this.request,
-      loggerFactory,
+      apiService: this._api,
+      actionsService: this._actions,
+      payloadService: this._payload,
+      contextService: this._context,
+      formService: this._form,
+      inlineService: this._inline,
+      requestService: this._request,
+      loggerFactory: this.loggerFactory,
       inlineQueryResolver,
     });
 
     this.updateService = new UpdateService({
-      callService: this.callService,
+      callService: this._callService,
       handler: (update) => this.updateHandler(update),
-      loggerFactory,
+      loggerFactory: this.loggerFactory,
     });
   }
 
-  public async init() {
-    await this.actions.parse();
+  private _username: string | undefined;
+
+  private handler: UpdateHandler | undefined;
+
+  public async init(handler: UpdateHandler) {
+    if (!this._actions) {
+      throw new Error('Telegram is not inited');
+    }
+
+    this.handler = handler;
+    await this._actions.parse();
 
     const me = await this.api.call('getMe');
     this._username = me.username;
@@ -181,6 +251,10 @@ export class Telegram<T extends InitType> {
   }
 
   private async tryUpdate(ctx: ContextAny, tryCount = 0): Promise<void> {
+    if (!this.handler) {
+      return;
+    }
+
     const result = await this.handler();
     if (typeof result === 'object' && result.redirect) {
       if ('action' in result.redirect) {
