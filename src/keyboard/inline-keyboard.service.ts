@@ -2,9 +2,9 @@
 
 import type { InlineKeyboardButton } from '@grammyjs/types';
 
-import type { RequestService } from './request.service';
-import type { TgLocale, TgUser } from './interfaces';
-import type { BackData, InferPayloads, PayloadService } from './payload';
+import type { RequestService } from '../request.service';
+import type { TgLocale, TgUser } from '../interfaces';
+import type { BackData, InferPayloads, PayloadService } from '../payload';
 import {
   type ActionItem,
   type ActionItemPayload,
@@ -12,9 +12,9 @@ import {
   type PagingOptions,
   SwitchButtonMode,
   type SwitchButtonsOptions,
-} from './types';
-import { InitType } from './types/init';
-import { ContextService } from './context.service';
+} from '../types';
+import { InitType } from '../types/init';
+import { ContextService } from '../context.service';
 
 type BackButtonOptionsExt<A extends ActionItem> = {
   labelKey?: string;
@@ -52,7 +52,7 @@ type SwitchIcons = {
   Current: string;
 };
 
-export class KeyboardService<T extends InitType> {
+export class InlineKeyboardService<T extends InitType> {
   public readonly maxButtons: number = 7;
 
   private pagingIcons: PagingIcons = { PrevButton: '<<', NextButton: '>>', Current: '.' };
@@ -186,27 +186,6 @@ export class KeyboardService<T extends InitType> {
     }
 
     return sortedButtons;
-  }
-
-  public backButtonExt<A extends ActionItem>(
-    options: BackButtonOptionsExt<A>,
-  ): InlineKeyboardButton {
-    const { labelKey, actionItem } = options;
-    const ctx = this.contextService.get();
-    const { payload } = ctx;
-    if (payload && 'back' in payload) {
-      const { backPayload, entranceActionId } = payload.back as BackData;
-      const entranceAction = this.payloadService.actionsService.getById(entranceActionId);
-      const parent = entranceAction.meta.parent;
-      if (parent?.meta.id === actionItem.meta.id) {
-        return {
-          text: this.locale.text(labelKey || 'back-button'),
-          callback_data: backPayload,
-        };
-      }
-    }
-
-    return this.backButton(options);
   }
 
   public backButton<A extends ActionItem>(options: BackButtonOptions<A>): InlineKeyboardButton {

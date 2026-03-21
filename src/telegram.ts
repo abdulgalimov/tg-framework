@@ -9,7 +9,7 @@ import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
 import { KvStore, TelegramStore, TgLogger, TgLoggerFactory } from './interfaces';
-import { KeyboardService } from './keyboard.service';
+import { InlineKeyboardService } from './keyboard/inline-keyboard.service';
 import { MiddlewaresService } from './mw';
 import { PayloadService } from './payload';
 import { LocaleServiceOptions, UpdateHandler } from './types';
@@ -70,7 +70,7 @@ export class Telegram<T extends InitType> {
 
   private _inline: InlineService<T> | undefined;
 
-  private _keyboard: KeyboardService<T> | undefined;
+  private _inlineKeyboard: InlineKeyboardService<T> | undefined;
 
   private _locale: LocaleService<T> | undefined;
 
@@ -107,9 +107,9 @@ export class Telegram<T extends InitType> {
     return this._locale;
   }
 
-  public get keyboard(): KeyboardService<T> {
-    if (!this._keyboard) throw new Error('Telegram is not inited');
-    return this._keyboard;
+  public get inlineKeyboard(): InlineKeyboardService<T> {
+    if (!this._inlineKeyboard) throw new Error('Telegram is not inited');
+    return this._inlineKeyboard;
   }
 
   public get form(): FormService<T> {
@@ -162,7 +162,12 @@ export class Telegram<T extends InitType> {
 
     this._inline = new InlineService(this._context, this._api, kv);
 
-    this._keyboard = new KeyboardService(this._context, this._request, this._payload, this._locale);
+    this._inlineKeyboard = new InlineKeyboardService(
+      this._context,
+      this._request,
+      this._payload,
+      this._locale,
+    );
 
     this.middlewaresService = new MiddlewaresService<T>({
       store,

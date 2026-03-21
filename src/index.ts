@@ -8,7 +8,7 @@ export * from './errors';
 export * from './form.service';
 export * from './inline.service';
 export * from './interfaces';
-export * from './keyboard.service';
+export * from './keyboard/inline-keyboard.service';
 export * from './payload';
 export { configureShortValues } from './payload/shorts';
 export * from './telegram';
