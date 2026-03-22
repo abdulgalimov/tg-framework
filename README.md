@@ -67,9 +67,11 @@ This creates `locales/generated/locale-types.ts` with a fully typed `LocaleKeysT
 import { readFileSync } from 'node:fs';
 import {
   Telegram,
+  Context,
   payloadSchema,
   type InitType,
-  type TgUser,
+  type TgUser, 
+  type ContextOptions,
 } from '@abdulgalimov/telegram';
 import type { LocaleKeysType } from './locales/generated/locale-types';
 
@@ -93,6 +95,7 @@ const actionsTree = {
 type MyUser = TgUser & { name: string };
 type MyTree = typeof actionsTree;
 type MyInit = InitType & { user: MyUser; locale: LocaleKeysType; tree: MyTree };
+type MyContext<O extends ContextOptions> = ContextTg<O, MyUser>;
 
 // 5. Create Telegram instance
 const tg = new Telegram<MyInit>({
@@ -125,12 +128,14 @@ tg.create({
 // 7. Initialize and start polling
 await tg.init(async () => {
   const ctx = tg.context.get();
-  const { action, payload, user } = ctx;
+  const { action, user } = ctx;
 
   const tree = tg.actions.tree;
 
   if (action === tree.core.command) {
-    const { command } = payload;
+    // Cast context to get typed payload for this action
+    const ctxCommand = ctx as MyContext<{ action: typeof tree.core.command }>;
+    const { command } = ctxCommand.payload;
     if (command === '/start') {
       await tg.request.reply({ text: `Welcome, ${user.name}!`, parse_mode: 'HTML' });
     }
@@ -143,7 +148,8 @@ await tg.init(async () => {
   }
 
   if (action === tree.settings) {
-    const { page } = payload;
+    const ctxSettings = ctx as Context<{ action: typeof tree.settings }>;
+    const { page } = ctxSettings.payload;
     await tg.request.reply({ text: `Settings page ${page || 1}` });
     return;
   }
@@ -235,6 +241,15 @@ ctx.form;     // Active form (if any)
 ctx.flags;    // Request flags (callbackAnswered, messageDeleted, etc.)
 ctx.from;     // Telegram User object from the update
 ctx.inline;   // Inline query data
+```
+
+**Typed payload access:** `ctx.payload` is strictly typed relative to `ctx.action`. To safely access the payload, cast the context to the specific action type:
+
+```typescript
+if (ctx.action === tree.settings) {
+  const ctxSettings = ctx as Context<{ action: typeof tree.settings }>;
+  const { page } = ctxSettings.payload; // page is typed as number | undefined
+}
 ```
 
 ### Request Service

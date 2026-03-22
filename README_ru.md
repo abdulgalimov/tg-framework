@@ -67,9 +67,11 @@ npx telegram-prepare
 import { readFileSync } from 'node:fs';
 import {
   Telegram,
+  Context,
   payloadSchema,
   type InitType,
-  type TgUser,
+  type TgUser, 
+  type ContextOptions,
 } from '@abdulgalimov/telegram';
 import type { LocaleKeysType } from './locales/generated/locale-types';
 
@@ -93,6 +95,7 @@ const actionsTree = {
 type MyUser = TgUser & { name: string };
 type MyTree = typeof actionsTree;
 type MyInit = InitType & { user: MyUser; locale: LocaleKeysType; tree: MyTree };
+type MyContext<O extends ContextOptions> = ContextTg<O, MyUser>;
 
 // 5. Создайте экземпляр Telegram
 const tg = new Telegram<MyInit>({
@@ -125,12 +128,14 @@ tg.create({
 // 7. Инициализируйте и запустите polling
 await tg.init(async () => {
   const ctx = tg.context.get();
-  const { action, payload, user } = ctx;
+  const { action, user } = ctx;
 
   const tree = tg.actions.tree;
 
   if (action === tree.core.command) {
-    const { command } = payload;
+    // Приведение контекста для получения типизированного payload
+    const ctxCommand = ctx as MyContext<{ action: typeof tree.core.command }>;
+    const { command } = ctxCommand.payload;
     if (command === '/start') {
       await tg.request.reply({ text: `Привет, ${user.name}!`, parse_mode: 'HTML' });
     }
@@ -143,7 +148,8 @@ await tg.init(async () => {
   }
 
   if (action === tree.settings) {
-    const { page } = payload;
+    const ctxSettings = ctx as MyContext<{ action: typeof tree.settings }>;
+    const { page } = ctxSettings.payload;
     await tg.request.reply({ text: `Настройки, страница ${page || 1}` });
     return;
   }
@@ -235,6 +241,15 @@ ctx.form;     // Активная форма (если есть)
 ctx.flags;    // Флаги запроса (callbackAnswered, messageDeleted и т.д.)
 ctx.from;     // Объект Telegram User из обновления
 ctx.inline;   // Данные inline-запроса
+```
+
+**Типизированный доступ к payload:** `ctx.payload` строго типизирован относительно `ctx.action`. Чтобы безопасно получить payload, приведите контекст к типу конкретного действия:
+
+```typescript
+if (ctx.action === tree.settings) {
+  const ctxSettings = ctx as Context<{ action: typeof tree.settings }>;
+  const { page } = ctxSettings.payload; // page типизирован как number | undefined
+}
 ```
 
 ### Сервис запросов
