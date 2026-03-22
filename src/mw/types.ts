@@ -10,12 +10,10 @@ import { ContextService } from '../context.service';
 import { ReplyKeyboardService } from '../keyboard';
 
 export type MwServiceOptions<T extends InitType> = {
-  apiService: ApiService;
   formService: FormService<T>;
   payloadService: PayloadService<T>;
   actionsService: ActionsService<T>;
   inlineService: InlineService<T>;
-  requestService: RequestService<T>;
   contextService: ContextService<T>;
   store: TelegramStore;
   kv: KvStore;

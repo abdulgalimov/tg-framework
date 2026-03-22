@@ -5,7 +5,7 @@ export type TelegramConfig = {
 };
 
 export type TelegramDebugConfig = {
-  payloadDecoderLevel: number;
-  telegramCallServiceLevel: number;
-  telegramUpdateLevel: number;
+  payloadDecoderLevel: string;
+  telegramCallServiceLevel: string;
+  telegramUpdateLevel: string;
 };

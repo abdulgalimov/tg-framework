@@ -1,4 +1,4 @@
-import type { TelegramConfig, TelegramDebugConfig } from './config';
+import type { TelegramConfig, TelegramDebugConfig } from './types';
 import { CallApiError } from './errors';
 import type { TgLogger, TgLoggerFactory } from './interfaces';
 
@@ -33,7 +33,7 @@ export class CallService {
 
     const url = `${this.telegramConfig.apiUrl}/bot${this.telegramConfig.token}/${method}`;
 
-    const formData = body instanceof FormData ? (body as FormData) : null;
+    const formData = body instanceof FormData ? body : null;
 
     this.logger.debug('call', {
       method,

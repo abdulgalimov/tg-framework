@@ -1,9 +1,4 @@
-import type {
-  InlineKeyboardButton,
-  InlineKeyboardMarkup,
-  Message,
-  ReplyKeyboardMarkup,
-} from '@grammyjs/types';
+import type { Message, ReplyKeyboardMarkup } from '@grammyjs/types';
 
 import type { ApiService } from './api.service';
 import { CallApiError, TgErrorCodes } from './errors';
@@ -313,10 +308,6 @@ export class RequestService<T extends InitType> {
       isError = true;
       throw error;
     } finally {
-      console.log('prepareSend', {
-        prepareSend,
-        sendReplyKeyboard,
-      });
       if (isError) {
         await this.payloadService.revertSend(prepareSend);
       } else {

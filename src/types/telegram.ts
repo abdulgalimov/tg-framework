@@ -1,4 +1,4 @@
-import type { Message, ApiMethods, Update } from '@grammyjs/types';
+import type { ApiMethods, Message } from '@grammyjs/types';
 import { UpdateResult } from '../actions';
 
 export type SendFile = {

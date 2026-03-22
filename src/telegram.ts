@@ -3,7 +3,7 @@ import type { Update } from '@grammyjs/types';
 import { Actions, ActionsService } from './actions';
 import { ApiService } from './api.service';
 import { CallService } from './call.service';
-import type { TelegramConfig } from './config';
+import type { TelegramConfig } from './types';
 import { type ContextAny, createContext } from './context';
 import { RequestService } from './request.service';
 import { FormService } from './form.service';
@@ -181,13 +181,11 @@ export class Telegram<T extends InitType> {
     this.middlewaresService = new MiddlewaresService<T>({
       store,
       kv,
-      apiService: this._api,
       actionsService: this._actions,
       payloadService: this._payload,
       contextService: this._context,
       formService: this._form,
       inlineService: this._inline,
-      requestService: this._request,
       loggerFactory: this.loggerFactory,
       replyKeyboard: this._replyKeyboard,
     });
@@ -274,6 +272,12 @@ export class Telegram<T extends InitType> {
         ctx.action = action;
 
         ctx.payload = this.payload.decodePayload(ctx.action, ctx.payload, payload);
+
+        this.logger.debug('redirect', {
+          action: ctx.action?.meta.fullKey,
+          payload: ctx.payload,
+          tryCount,
+        });
 
         await this.tryUpdate(ctx, tryCount + 1);
         if (callback) {

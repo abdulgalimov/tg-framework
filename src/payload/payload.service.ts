@@ -5,7 +5,7 @@ import { randomBytes } from 'node:crypto';
 import { v4 as uuidV4 } from 'uuid';
 
 import type { ActionsService } from '../actions';
-import type { TelegramDebugConfig } from '../config';
+import type { TelegramDebugConfig } from '../types/config';
 import type { Context } from '../context';
 import type { InlineKeyboardsStore, TgLoggerFactory } from '../interfaces';
 import {

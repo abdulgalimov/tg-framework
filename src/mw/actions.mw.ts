@@ -6,13 +6,10 @@ import {
   ActionForm,
   ActionInline,
   ActionInlinePayload,
-  ActionItemKeyboardButton,
-  ActionItemKeyboardButtonPayload,
   ActionItemPayload,
   Form,
   InlineChosenPayload,
   InlineQueryPayload,
-  ReplyButtonPayload,
 } from '../types';
 import { BaseMw } from './base.mw';
 import type { Middleware, MwServiceOptions } from './types';
@@ -214,9 +211,6 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
       const findResult = await this.inlineService.find(query);
       if (findResult) {
         const [inlineData, variables] = findResult;
-        if (typeof inlineData === 'string') {
-          return;
-        }
 
         const inlineAction = this.actionsService.getById<ActionInline>(inlineData.actionId);
         if (inlineAction.meta.childOf(action)) {
@@ -237,9 +231,6 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
       const findResult = await this.inlineService.find(chosenInline.query);
       if (findResult) {
         const [inlineData, variables] = findResult;
-        if (typeof inlineData === 'string') {
-          return;
-        }
 
         const inlineAction = this.actionsService.getById<ActionInline>(inlineData.actionId);
         if (inlineAction.meta.childOf(action)) {
