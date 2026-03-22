@@ -6,9 +6,9 @@ import { v4 as uuidV4 } from 'uuid';
 
 import type { ActionsService } from '../actions';
 import type { TelegramDebugConfig } from '../config';
-import type { Context, UserContextAny } from '../context';
-import type { KeyboardPayloadsStore, TgLoggerFactory, TgUser } from '../interfaces';
-import type {
+import type { Context } from '../context';
+import type { InlineKeyboardsStore, TgLoggerFactory } from '../interfaces';
+import {
   ActionItem,
   ActionItemPayload,
   EditMessageTextArgs,
@@ -37,7 +37,7 @@ export class PayloadService<T extends InitType> {
   public constructor(
     private readonly contextService: ContextService<T>,
     public readonly actionsService: ActionsService<T>,
-    private readonly keyboardPayloads: KeyboardPayloadsStore,
+    private readonly keyboardPayloads: InlineKeyboardsStore,
     debugConfig: TelegramDebugConfig,
     loggerFactory: TgLoggerFactory,
   ) {
@@ -311,6 +311,11 @@ export class PayloadService<T extends InitType> {
     };
   }
 
+  /**
+   *  При создании клавиатуры в prepareSend мы создаем в базе keyboardPayloads без messageId,
+   *  После успешной отправки, удаляем из базы все записи у которых есть messageId (старые клавы)
+   *  После этого записываем новый messageId во все кнопки с текущим contextId
+   */
   public async completeSend(prepareKeyboard: PrepareKeyboard | null, messageId: number) {
     if (!prepareKeyboard) {
       return;

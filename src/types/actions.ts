@@ -26,6 +26,12 @@ export type ActionItemCommand = ActionItemPayload<{
   value?: string | undefined;
 }>;
 
+export type ActionItemKeyboardButtonPayload = {
+  label?: string | undefined;
+};
+
+export type ActionItemKeyboardButton = ActionItemPayload<ActionItemKeyboardButtonPayload>;
+
 export type ActionCore = ActionItem & {
   none: ActionItem;
   hide: ActionItem;
@@ -33,6 +39,9 @@ export type ActionCore = ActionItem & {
   text: ActionItem;
   inline: ActionInline;
   viaBot: ActionItem;
+  keyboard: ActionItem & {
+    button: ActionItemKeyboardButton;
+  };
 };
 
 export type AllActionsTree = ActionItem & {

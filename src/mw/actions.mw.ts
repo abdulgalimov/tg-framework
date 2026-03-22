@@ -6,10 +6,13 @@ import {
   ActionForm,
   ActionInline,
   ActionInlinePayload,
+  ActionItemKeyboardButton,
+  ActionItemKeyboardButtonPayload,
   ActionItemPayload,
   Form,
   InlineChosenPayload,
   InlineQueryPayload,
+  ReplyButtonPayload,
 } from '../types';
 import { BaseMw } from './base.mw';
 import type { Middleware, MwServiceOptions } from './types';
@@ -36,9 +39,18 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
   private async getAction(ctx: ContextAny) {
     const { update, user } = ctx;
 
+    if (!user) {
+      return;
+    }
+
     const form = await this.formService.find(user.id);
     if (form) {
       await this.formAction(ctx, form);
+      return;
+    }
+
+    await this.replyKeyboardAction(ctx);
+    if (ctx.action) {
       return;
     }
 
@@ -66,7 +78,7 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
     ctx.action = this.actionsService.tree.core.none;
   }
 
-  private textAction(ctx: ContextAny, text: string): void {
+  private textAction(ctx: ContextAny, text: string) {
     const commandExec = commandsReg.exec(text);
 
     if (commandExec?.groups) {
@@ -88,6 +100,51 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
     } else {
       ctx.action = this.actionsService.tree.core.text;
     }
+  }
+
+  private async replyKeyboardAction(ctx: ContextAny) {
+    const { update } = ctx;
+    const { message } = update;
+    if (!message) {
+      return null;
+    }
+
+    const keyboard = await this.replyKeyboard.find();
+    if (!keyboard) {
+      return;
+    }
+
+    const button = keyboard.buttons.find((button) => {
+      if (button.text === message.text) {
+        return true;
+      }
+
+      if ('request_contact' in button && message.contact) {
+        return true;
+      }
+
+      if ('request_poll' in button && message.poll) {
+        return true;
+      }
+
+      if ('request_location' in button && message.location) {
+        return true;
+      }
+
+      if ('request_users' in button && message.users_shared) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (!button?.payload) {
+      return;
+    }
+
+    const [action, payload] = await this.payloadService.decode(button.payload);
+    ctx.action = action;
+    ctx.payload = payload;
   }
 
   private async parseStartCommand(text: string) {

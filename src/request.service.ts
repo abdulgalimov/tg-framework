@@ -1,9 +1,13 @@
-import type { Message, InlineKeyboardButton, InlineKeyboardMarkup } from '@grammyjs/types';
+import type {
+  InlineKeyboardButton,
+  InlineKeyboardMarkup,
+  Message,
+  ReplyKeyboardMarkup,
+} from '@grammyjs/types';
 
 import type { ApiService } from './api.service';
-import { getContext, type UserContextAny } from './context';
 import { CallApiError, TgErrorCodes } from './errors';
-import type { KvStore, TgLocale, TgLoggerFactory, TgUser } from './interfaces';
+import type { KvStore, TgLoggerFactory } from './interfaces';
 import type { PayloadService } from './payload';
 import type {
   AllActionsTree,
@@ -11,17 +15,17 @@ import type {
   AnswerInlineQueryContext,
   EditMessageTextArgs,
   EditMessageTextResult,
-  KeyboardArgs,
   ReplyArgsContext,
   ReplyOptions,
   ReplyResultContext,
   SendMessageArgs,
-  SendOptions,
   SendPhotoArgs,
 } from './types';
 import { LocaleService } from './locale.service';
 import { InitType } from './types/init';
 import { ContextService } from './context.service';
+import { ReplyKeyboardService } from './keyboard';
+import type { ForceReply, ReplyKeyboardRemove } from '@grammyjs/types/markup';
 
 export class RequestService<T extends InitType> {
   private readonly logger;
@@ -32,6 +36,7 @@ export class RequestService<T extends InitType> {
     private readonly apiService: ApiService,
     private readonly localeService: LocaleService<T>,
     private readonly payloadService: PayloadService<T>,
+    private readonly replyKeyboardService: ReplyKeyboardService<T>,
     private readonly kv: KvStore,
     loggerFactory: TgLoggerFactory,
   ) {
@@ -79,6 +84,7 @@ export class RequestService<T extends InitType> {
     await this.payloadService.deleteKeyboard(chatId, deleteMessageId);
   }
 
+  /*
   public async send(args: ReplyArgsContext, options?: SendOptions): Promise<void> {
     const ctx = this.contextService.get();
     const { user } = ctx;
@@ -116,6 +122,7 @@ export class RequestService<T extends InitType> {
 
     args.reply_markup = keyboard;
   }
+   */
 
   public async reply(
     args: ReplyArgsContext,
@@ -138,19 +145,11 @@ export class RequestService<T extends InitType> {
     const {
       sendMode,
       tryReplyMessage,
-      hideButton,
       messageId: forceEditMessageId,
       noUpdateLastMessage,
     } = options || {};
 
     const callbackMessageId = update?.callback_query?.message?.message_id;
-
-    if (hideButton) {
-      this.addButton(args, {
-        text: this.localeService.text('hide-button'),
-        callback_data: this.payloadService.encode(this.actionsTree.core.hide),
-      });
-    }
 
     if (args.reply_markup && 'inline_keyboard' in args.reply_markup) {
       args.reply_markup.inline_keyboard.forEach((line) => {
@@ -162,6 +161,11 @@ export class RequestService<T extends InitType> {
           }
         });
       });
+    }
+
+    let hasTextKeyboard = false;
+    if (args.reply_markup && 'keyboard' in args.reply_markup) {
+      hasTextKeyboard = args.reply_markup.keyboard.length > 0;
     }
 
     const { messageDeleted, newMessage: newMessageFlag } = ctx.flags;
@@ -176,7 +180,14 @@ export class RequestService<T extends InitType> {
       await this.delete();
     }
 
-    if (editMessageId && !sendMode && !newMessageFlag && !newMessagePayload && !isFile) {
+    if (
+      editMessageId &&
+      !sendMode &&
+      !newMessageFlag &&
+      !newMessagePayload &&
+      !isFile &&
+      !hasTextKeyboard
+    ) {
       try {
         return await this.sendOrEdit({
           ...args,
@@ -220,7 +231,10 @@ export class RequestService<T extends InitType> {
             .catch((_error) => {});
         }
 
-        await this.kv.setValue(`user_message_id:${user.id}`, result.message_id);
+        await this.kv.setValue(
+          `user_message_id:${user.id}`,
+          hasTextKeyboard ? 0 : result.message_id,
+        );
       }
 
       return result;
@@ -267,6 +281,7 @@ export class RequestService<T extends InitType> {
 
     let messageId: number = 0;
     let isError = false;
+    let sendReplyKeyboard: ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | undefined;
     try {
       if ('message_id' in args) {
         messageId = args.message_id!;
@@ -285,6 +300,9 @@ export class RequestService<T extends InitType> {
           return result;
         }
       } else {
+        if (args.reply_markup && !('inline_keyboard' in args.reply_markup)) {
+          sendReplyKeyboard = args.reply_markup;
+        }
         const result = await this.apiService.call('sendMessage', args as SendMessageArgs);
 
         messageId = result.message_id;
@@ -295,10 +313,17 @@ export class RequestService<T extends InitType> {
       isError = true;
       throw error;
     } finally {
+      console.log('prepareSend', {
+        prepareSend,
+        sendReplyKeyboard,
+      });
       if (isError) {
         await this.payloadService.revertSend(prepareSend);
       } else {
         await this.payloadService.completeSend(prepareSend, messageId);
+      }
+      if (sendReplyKeyboard) {
+        await this.replyKeyboardService.create(messageId, args.text, sendReplyKeyboard);
       }
     }
   }
@@ -333,7 +358,6 @@ export class RequestService<T extends InitType> {
       },
       {
         tryReplyMessage: true,
-        hideButton: true,
         sendMode: true,
       },
     );

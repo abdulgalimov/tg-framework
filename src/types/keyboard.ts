@@ -1,5 +1,6 @@
 import type { InferPayloads } from '../payload';
 import type { ActionDelete, ActionItemPayload } from './actions';
+import { KeyboardButton, ReplyKeyboardMarkup } from '@grammyjs/types/markup';
 
 export type ConfirmContextOptions = {
   action: ActionDelete;
@@ -37,4 +38,19 @@ export type SwitchButtonsOptions<
   callbackField: Key;
   currentValue: Payload[Key];
   mode?: SwitchButtonMode;
+};
+
+export type ReplyButtonPayload = (
+  | KeyboardButton.CommonButton
+  | KeyboardButton.RequestUsersButton
+  | KeyboardButton.RequestChatButton
+  | KeyboardButton.RequestContactButton
+  | KeyboardButton.RequestLocationButton
+  | KeyboardButton.RequestPollButton
+  | KeyboardButton.WebAppButton
+) & {
+  payload?: string;
+};
+export type ReplyKeyboardPayload = Omit<ReplyKeyboardMarkup, 'keyboard'> & {
+  keyboard: ReplyButtonPayload[][];
 };

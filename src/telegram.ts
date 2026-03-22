@@ -9,7 +9,7 @@ import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
 import { KvStore, TelegramStore, TgLogger, TgLoggerFactory } from './interfaces';
-import { InlineKeyboardService } from './keyboard/inline-keyboard.service';
+import { InlineKeyboardService, ReplyKeyboardService } from './keyboard';
 import { MiddlewaresService } from './mw';
 import { PayloadService } from './payload';
 import { LocaleServiceOptions, UpdateHandler } from './types';
@@ -72,6 +72,8 @@ export class Telegram<T extends InitType> {
 
   private _inlineKeyboard: InlineKeyboardService<T> | undefined;
 
+  private _replyKeyboard: ReplyKeyboardService<T> | undefined;
+
   private _locale: LocaleService<T> | undefined;
 
   public get context(): ContextService<T> {
@@ -133,12 +135,18 @@ export class Telegram<T extends InitType> {
     this._payload = new PayloadService(
       this._context,
       this._actions,
-      store.keyboardPayloads,
+      store.inlineKeyboards,
       debugConfig,
       this.loggerFactory,
     );
 
     this._api = new ApiService(this._callService);
+
+    this._replyKeyboard = new ReplyKeyboardService<T>(
+      this._context,
+      store.replyKeyboards,
+      this._api,
+    );
 
     this._request = new RequestService<T>(
       this._context,
@@ -146,6 +154,7 @@ export class Telegram<T extends InitType> {
       this._api,
       this._locale,
       this._payload,
+      this._replyKeyboard,
       kv,
       this.loggerFactory,
     );
@@ -180,6 +189,7 @@ export class Telegram<T extends InitType> {
       inlineService: this._inline,
       requestService: this._request,
       loggerFactory: this.loggerFactory,
+      replyKeyboard: this._replyKeyboard,
     });
 
     this.updateService = new UpdateService({

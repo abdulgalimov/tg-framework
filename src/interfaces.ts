@@ -1,4 +1,4 @@
-import type { ActionItem } from './types';
+import { ReplyButtonPayload } from './types';
 
 // Logger
 export interface TgLogger {
@@ -13,11 +13,6 @@ export interface TgLoggerFactory {
   create(name: string): TgLogger;
 }
 
-// Locale
-export interface TgLocale {
-  text(code: string): string;
-}
-
 // User
 export interface TgUser {
   id: bigint;
@@ -30,12 +25,28 @@ export interface ActionsStore {
   createAll(pathList: string[]): Promise<{ path: string; id: number }[]>;
 }
 
-export interface KeyboardPayloadsStore {
+export interface InlineKeyboardsStore {
   create(data: { payload: string; chatId: number; contextId: string }): Promise<string>;
   find(id: string): Promise<string | null>;
   deleteMessages(chatId: number, messageId: number | number[]): Promise<void>;
   updateMessageId(contextId: string, messageId: number): Promise<void>;
   deleteContext(contextId: string): Promise<void>;
+}
+
+export interface ReplyKeyboardsStore {
+  delete(chatId: number): Promise<void>;
+  create(
+    chatId: number,
+    messageId: number,
+    text: string,
+    buttons: ReplyButtonPayload[],
+  ): Promise<void>;
+  find(chatId: number): Promise<{
+    chatId: number;
+    messageId: number;
+    text: string;
+    buttons: ReplyButtonPayload[];
+  }>;
 }
 
 export interface UsersStore<TUser> {
@@ -50,7 +61,8 @@ export interface UsersStore<TUser> {
 
 export interface TelegramStore<TUser extends TgUser = TgUser> {
   actions: ActionsStore;
-  keyboardPayloads: KeyboardPayloadsStore;
+  inlineKeyboards: InlineKeyboardsStore;
+  replyKeyboards: ReplyKeyboardsStore;
   users: UsersStore<TUser>;
 }
 

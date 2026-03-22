@@ -2,11 +2,12 @@ import type { InlineKeyboardMarkup } from '@grammyjs/types';
 
 import type { ActionsService } from './actions';
 import type { RequestService } from './request.service';
-import type { KvStore, TgLocale, TgLoggerFactory, TgUser } from './interfaces';
+import type { KvStore, TgLoggerFactory } from './interfaces';
 import type { PayloadService, UnknownPayload } from './payload';
 import type { ActionForm, CreateFormOptions, Form, ReplyArgsContext, ReplyOptions } from './types';
 import { InitType } from './types/init';
 import { ContextService } from './context.service';
+import { LocaleService } from './locale.service';
 
 export class FormService<T extends InitType> {
   // Delete from history the messages entered by the user during the token search process.
@@ -18,7 +19,7 @@ export class FormService<T extends InitType> {
 
   private readonly payloadService: PayloadService<T>;
 
-  private readonly localeService: TgLocale;
+  private readonly localeService: LocaleService<T>;
 
   private readonly kv: KvStore;
 
@@ -29,7 +30,7 @@ export class FormService<T extends InitType> {
     requestService: RequestService<T>,
     actionsService: ActionsService<T>,
     payloadService: PayloadService<T>,
-    localeService: TgLocale,
+    localeService: LocaleService<T>,
     kv: KvStore,
     loggerFactory: TgLoggerFactory,
   ) {

@@ -3,8 +3,7 @@
 import type { InlineKeyboardButton } from '@grammyjs/types';
 
 import type { RequestService } from '../request.service';
-import type { TgLocale, TgUser } from '../interfaces';
-import type { BackData, InferPayloads, PayloadService } from '../payload';
+import type { InferPayloads, PayloadService } from '../payload';
 import {
   type ActionItem,
   type ActionItemPayload,
@@ -15,12 +14,7 @@ import {
 } from '../types';
 import { InitType } from '../types/init';
 import { ContextService } from '../context.service';
-
-type BackButtonOptionsExt<A extends ActionItem> = {
-  labelKey?: string;
-  actionItem: A;
-  actionData?: InferPayloads<A>;
-};
+import { LocaleService } from '../locale.service';
 
 type BackButtonOptions<A extends ActionItem> =
   | {
@@ -60,9 +54,9 @@ export class InlineKeyboardService<T extends InitType> {
 
   public constructor(
     private readonly contextService: ContextService<T>,
-    protected readonly requestService: RequestService<T>,
-    protected readonly payloadService: PayloadService<T>,
-    protected readonly locale: TgLocale,
+    private readonly requestService: RequestService<T>,
+    private readonly payloadService: PayloadService<T>,
+    private readonly locale: LocaleService<T>,
   ) {}
 
   public setIcons(pagingIcons: PagingIcons, switchIcons: SwitchIcons) {
