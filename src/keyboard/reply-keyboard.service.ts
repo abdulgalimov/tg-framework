@@ -28,10 +28,14 @@ export class ReplyKeyboardService<T extends InitType> {
 
     if ('remove_keyboard' in keyboard) {
       if (savedKeyboard) {
-        await this.apiService.call('deleteMessage', {
-          chat_id: savedKeyboard.chatId,
-          message_id: savedKeyboard.messageId,
+        this.contextService.messageMarkDeleted({
+          chatId: savedKeyboard.chatId,
+          messageId: savedKeyboard.messageId,
         });
+        // await this.apiService.call('deleteMessage', {
+        //   chat_id: savedKeyboard.chatId,
+        //   message_id: savedKeyboard.messageId,
+        // });
       }
       return;
     }

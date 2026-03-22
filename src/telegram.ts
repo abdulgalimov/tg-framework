@@ -229,6 +229,25 @@ export class Telegram<T extends InitType> {
       await this.context.createRequest(requestStore as ContextAny, (ctx) =>
         this.updateWithContext(ctx),
       );
+
+      const internal = this.context.getInternal();
+      const { deleteMessages } = internal;
+      await Promise.all(
+        [...deleteMessages.entries()].map(([chatId, messagesSet]) => {
+          return this._api
+            ?.call('deleteMessages', {
+              chat_id: chatId,
+              message_ids: [...messagesSet],
+            })
+            .catch((err) => {
+              this.logger.error('deleteMessages error', {
+                chatId,
+                messages: [...messagesSet],
+                error: err,
+              });
+            });
+        }),
+      );
     });
   }
 

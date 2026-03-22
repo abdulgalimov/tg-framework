@@ -5,7 +5,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 type BaseContext = {} & Record<string, unknown>;
 
 export type InternalContext = {
-  deleteMessages: Record<number, number[]>;
+  deleteMessages: Map<number, Set<number>>;
 };
 
 export class ContextService<T extends InitType> {
@@ -24,12 +24,27 @@ export class ContextService<T extends InitType> {
 
   public async createInternal(callback: () => Promise<unknown>) {
     const store: InternalContext = {
-      deleteMessages: {},
+      deleteMessages: new Map(),
     };
     await this.storageInternal.run(store, () => callback());
   }
 
-  public async getInternal() {
+  public messageMarkDeleted(data: { chatId: number; messageId: number | number[] }) {
+    const { chatId, messageId } = data;
+    const ctx = this.getInternal();
+    if (!ctx.deleteMessages.has(chatId)) {
+      ctx.deleteMessages.set(chatId, new Set());
+    }
+    const chatSet = ctx.deleteMessages.get(chatId)!;
+
+    if (Array.isArray(messageId)) {
+      messageId.forEach((id) => chatSet.add(id));
+    } else {
+      chatSet.add(messageId);
+    }
+  }
+
+  public getInternal() {
     return this.storageInternal.getStore() as InternalContext;
   }
 

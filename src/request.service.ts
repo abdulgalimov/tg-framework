@@ -34,12 +34,6 @@ export class RequestService<T extends InitType> {
     this.logger = loggerFactory.create(RequestService.name);
   }
 
-  public async messageMarkDeleted(data: { chatId: number; messageId: number }) {
-    const ctx = await this.contextService.getInternal();
-    ctx.deleteMessages[data.chatId] = ctx.deleteMessages[data.chatId] || [];
-    ctx.deleteMessages[data.chatId].push(data.messageId);
-  }
-
   public async delete(messageId?: number | number[]): Promise<void> {
     const ctx = this.contextService.get();
     const { user, update } = ctx;
@@ -63,19 +57,21 @@ export class RequestService<T extends InitType> {
         ctx.flags.messageDeleted = true;
       }
 
-      await this.apiService.call('deleteMessage', {
-        chat_id: chatId,
-        message_id: deleteMessageId,
-      });
+      this.contextService.messageMarkDeleted({ chatId, messageId: deleteMessageId });
+      // await this.apiService.call('deleteMessage', {
+      //   chat_id: chatId,
+      //   message_id: deleteMessageId,
+      // });
     } else {
       if (!!currentMessageId && deleteMessageId.includes(currentMessageId)) {
         ctx.flags.messageDeleted = true;
       }
 
-      await this.apiService.call('deleteMessages', {
-        chat_id: chatId,
-        message_ids: deleteMessageId,
-      });
+      this.contextService.messageMarkDeleted({ chatId, messageId: deleteMessageId });
+      // await this.apiService.call('deleteMessages', {
+      //   chat_id: chatId,
+      //   message_ids: deleteMessageId,
+      // });
     }
 
     await this.payloadService.deleteKeyboard(chatId, deleteMessageId);
@@ -220,12 +216,16 @@ export class RequestService<T extends InitType> {
         if (lastMessageId) {
           await this.payloadService.deleteKeyboard(user.telegramId, lastMessageId);
 
-          this.apiService
-            .call('deleteMessage', {
-              chat_id: user.telegramId,
-              message_id: lastMessageId,
-            })
-            .catch((_error) => {});
+          this.contextService.messageMarkDeleted({
+            chatId: user.telegramId,
+            messageId: lastMessageId,
+          });
+          // this.apiService
+          //   .call('deleteMessage', {
+          //     chat_id: user.telegramId,
+          //     message_id: lastMessageId,
+          //   })
+          //   .catch((_error) => {});
         }
 
         await this.kv.setValue(
