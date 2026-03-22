@@ -3,11 +3,11 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { TgFrameworkConfig } from './types/cli-config';
+import type { TgFrameworkConfig } from './types';
 
 async function main() {
   const cwd = process.cwd();
-  const configPath = resolve(cwd, 'tg-framework.config.js');
+  const configPath = resolve(cwd, 'telegram.config.js');
 
   let config: TgFrameworkConfig;
   try {
