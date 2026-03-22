@@ -6,10 +6,11 @@ import type { InlineService } from '../inline.service';
 import type { KvStore, TelegramStore, TgLoggerFactory } from '../interfaces';
 import type { PayloadService } from '../payload';
 import { InitType } from '../types/init';
-import { ContextService } from '../context.service';
+import { ContextService } from '../context';
 import { ReplyKeyboardService } from '../keyboard';
 
 export type MwServiceOptions<T extends InitType> = {
+  apiService: ApiService;
   formService: FormService<T>;
   payloadService: PayloadService<T>;
   actionsService: ActionsService<T>;

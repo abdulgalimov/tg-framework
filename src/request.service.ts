@@ -5,7 +5,6 @@ import { CallApiError, TgErrorCodes } from './errors';
 import type { KvStore, TgLoggerFactory } from './interfaces';
 import type { PayloadService } from './payload';
 import type {
-  AllActionsTree,
   AnswerCallbackQueryContext,
   AnswerInlineQueryContext,
   EditMessageTextArgs,
@@ -16,9 +15,8 @@ import type {
   SendMessageArgs,
   SendPhotoArgs,
 } from './types';
-import { LocaleService } from './locale.service';
 import { InitType } from './types/init';
-import { ContextService } from './context.service';
+import { ContextService } from './context';
 import { ReplyKeyboardService } from './keyboard';
 import type { ForceReply, ReplyKeyboardRemove } from '@grammyjs/types/markup';
 
@@ -27,15 +25,19 @@ export class RequestService<T extends InitType> {
 
   public constructor(
     private readonly contextService: ContextService<T>,
-    private readonly actionsTree: AllActionsTree,
     private readonly apiService: ApiService,
-    private readonly localeService: LocaleService<T>,
     private readonly payloadService: PayloadService<T>,
     private readonly replyKeyboardService: ReplyKeyboardService<T>,
     private readonly kv: KvStore,
     loggerFactory: TgLoggerFactory,
   ) {
     this.logger = loggerFactory.create(RequestService.name);
+  }
+
+  public async messageMarkDeleted(data: { chatId: number; messageId: number }) {
+    const ctx = await this.contextService.getInternal();
+    ctx.deleteMessages[data.chatId] = ctx.deleteMessages[data.chatId] || [];
+    ctx.deleteMessages[data.chatId].push(data.messageId);
   }
 
   public async delete(messageId?: number | number[]): Promise<void> {

@@ -4,7 +4,7 @@ import { Actions, ActionsService } from './actions';
 import { ApiService } from './api.service';
 import { CallService } from './call.service';
 import type { TelegramConfig } from './types';
-import { type ContextAny, createContext } from './context';
+import { type ContextAny, InternalContext } from './context';
 import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
@@ -16,7 +16,7 @@ import { LocaleServiceOptions, UpdateHandler } from './types';
 import { UpdateService } from './update.service';
 import { LocaleService } from './locale.service';
 import { InitType } from './types/init';
-import { ContextService } from './context.service';
+import { ContextService } from './context';
 
 export type TelegramOptions<T extends InitType> = {
   config: TelegramConfig;
@@ -150,9 +150,7 @@ export class Telegram<T extends InitType> {
 
     this._request = new RequestService<T>(
       this._context,
-      this._actions.tree,
       this._api,
-      this._locale,
       this._payload,
       this._replyKeyboard,
       kv,
@@ -181,6 +179,7 @@ export class Telegram<T extends InitType> {
     this.middlewaresService = new MiddlewaresService<T>({
       store,
       kv,
+      apiService: this._api,
       actionsService: this._actions,
       payloadService: this._payload,
       contextService: this._context,
@@ -222,11 +221,15 @@ export class Telegram<T extends InitType> {
   }
 
   private async updateHandler(update: Update) {
-    const store = {
+    const requestStore = {
       update,
       flags: {},
     };
-    await createContext(store as ContextAny, (ctx) => this.updateWithContext(ctx));
+    await this.context.createInternal(async () => {
+      await this.context.createRequest(requestStore as ContextAny, (ctx) =>
+        this.updateWithContext(ctx),
+      );
+    });
   }
 
   private async updateWithContext(ctx: ContextAny) {

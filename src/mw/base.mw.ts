@@ -5,11 +5,14 @@ import type { KvStore, TelegramStore, TgLogger } from '../interfaces';
 import type { PayloadService } from '../payload';
 import type { Middleware, MwServiceOptions } from './types';
 import { InitType } from '../types/init';
-import { ContextService } from '../context.service';
+import { ContextService } from '../context';
 import { ReplyKeyboardService } from '../keyboard';
+import { ApiService } from '../api.service';
 
 export abstract class BaseMw<T extends InitType> implements Middleware {
   protected readonly kv: KvStore;
+
+  protected readonly apiService: ApiService;
 
   protected readonly formService: FormService<T>;
 
@@ -30,6 +33,7 @@ export abstract class BaseMw<T extends InitType> implements Middleware {
   protected constructor(name: string, options: MwServiceOptions<T>) {
     this.kv = options.kv;
 
+    this.apiService = options.apiService;
     this.formService = options.formService;
     this.actionsService = options.actionsService;
     this.payloadService = options.payloadService;

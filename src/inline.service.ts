@@ -2,7 +2,7 @@ import type { ApiService } from './api.service';
 import type { KvStore } from './interfaces';
 import type { CreateInlineOptions, InlineData, InlineExtraOptions } from './types';
 import { InitType } from './types/init';
-import { ContextService } from './context.service';
+import { ContextService } from './context';
 
 const inlineReg = /^(?<query>\w+)(\s+(?<variables>.+))?/;
 

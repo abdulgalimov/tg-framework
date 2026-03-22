@@ -139,6 +139,11 @@ export class ActionsMw<T extends InitType> extends BaseMw<T> implements Middlewa
       return;
     }
 
+    await this.apiService.call('deleteMessage', {
+      chat_id: message.chat.id,
+      message_id: message.message_id,
+    });
+
     const [action, payload] = await this.payloadService.decode(button.payload);
     ctx.action = action;
     ctx.payload = payload;

@@ -6,7 +6,7 @@ import type { KvStore, TgLoggerFactory } from './interfaces';
 import type { PayloadService, UnknownPayload } from './payload';
 import type { ActionForm, CreateFormOptions, Form, ReplyArgsContext, ReplyOptions } from './types';
 import { InitType } from './types/init';
-import { ContextService } from './context.service';
+import { ContextService } from './context';
 import { LocaleService } from './locale.service';
 
 export class FormService<T extends InitType> {

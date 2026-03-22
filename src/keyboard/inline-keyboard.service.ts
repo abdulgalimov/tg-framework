@@ -13,7 +13,7 @@ import {
   type SwitchButtonsOptions,
 } from '../types';
 import { InitType } from '../types/init';
-import { ContextService } from '../context.service';
+import { ContextService } from '../context';
 import { LocaleService } from '../locale.service';
 
 type BackButtonOptions<A extends ActionItem> =

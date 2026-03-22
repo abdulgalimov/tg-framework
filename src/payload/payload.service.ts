@@ -18,7 +18,7 @@ import {
 import type { BackData, InferPayloads } from './schema';
 import { fullKeys, fullValues, shortKeys, shortValues } from './shorts';
 import type { PrepareKeyboard, UnknownPayload } from './types';
-import { ContextService } from '../context.service';
+import { ContextService } from '../context';
 import { InitType } from '../types/init';
 
 const CurrenVersion = 'v1';
