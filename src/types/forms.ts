@@ -1,8 +1,8 @@
 import type { UnknownPayload } from '../payload';
 import type { ActionForm } from './actions';
 
-export type CreateFormOptions<Data = unknown> = {
-  action: ActionForm;
+export type CreateFormOptions<Data = unknown, Action extends ActionForm = ActionForm> = {
+  action: Action;
   defaultData?: Data | null;
 };
 

@@ -7,3 +7,4 @@ export * from './request';
 export * from './cli-config';
 export * from './locale';
 export * from './config';
+export * from './init';
