@@ -126,7 +126,8 @@ tg.create({
 // 7. Register handlers
 tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
   const { payload } = ctx;
-  switch (payload.command) {
+  const { command } = payload; // automatically typed
+  switch (command) {
     case '/start':
       await tg.request.reply({ text: `Welcome, ${ctx.user.name}!`, parse_mode: 'HTML' });
       break;
@@ -138,7 +139,7 @@ tg.handlers.action(tg.actions.tree.menu, async (ctx) => {
 });
 
 tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
-  const { page } = ctx.payload; // automatically typed!
+  const { page } = ctx.payload; // automatically typed
   await tg.request.reply({ text: `Settings page ${page || 1}` });
 });
 

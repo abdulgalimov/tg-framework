@@ -126,7 +126,8 @@ tg.create({
 // 7. Зарегистрируйте хендлеры
 tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
   const { payload } = ctx;
-  switch (payload.command) {
+   const { command } = payload; // типы выводятся автоматически
+   switch (command) {
     case '/start':
       await tg.request.reply({ text: `Привет, ${ctx.user.name}!`, parse_mode: 'HTML' });
       break;
@@ -138,7 +139,7 @@ tg.handlers.action(tg.actions.tree.menu, async (ctx) => {
 });
 
 tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
-  const { page } = ctx.payload; // типы выводятся автоматически!
+  const { page } = ctx.payload; // типы выводятся автоматически
   await tg.request.reply({ text: `Настройки, страница ${page || 1}` });
 });
 
