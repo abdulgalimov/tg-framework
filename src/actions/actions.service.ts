@@ -1,7 +1,7 @@
 import type { ActionsStore } from '../interfaces';
 import { type ActionItem, type AllActionsTree, PayloadsField, TreeNode } from '../types';
 import { ActionMeta } from './meta';
-import { InitType } from '../types/init';
+import { InitType } from '../types';
 
 const ActionItemSystemKeys = [PayloadsField];
 
@@ -15,25 +15,32 @@ export type Actions<T extends InitType> = {
   getById<Action = ActionItem>(id: number): Action;
 };
 
-export class ActionsService<T extends InitType> {
+export class ActionsService<T extends InitType> implements Actions<T> {
   private readonly byId: Record<number, ActionItem> = {};
 
   public readonly tree: TreeNode<T['tree']> & AllActionsTree;
 
-  public constructor(
-    tree: T['tree'],
-    private readonly store: ActionsStore,
-  ) {
+  private store: ActionsStore | undefined;
+
+  public constructor(tree: T['tree']) {
     this.tree = tree as TreeNode<T['tree']> & AllActionsTree;
   }
 
   private async getIds(actionsList: string[]): Promise<IdsMap> {
+    if (!this.store) {
+      throw new Error('ActionsService is not initialized');
+    }
+
     const actions = await this.store.createAll(actionsList);
 
     return actions.reduce((acc, action) => {
       acc[action.path] = action.id;
       return acc;
     }, {} as IdsMap);
+  }
+
+  public init(store: ActionsStore) {
+    this.store = store;
   }
 
   public async parse() {

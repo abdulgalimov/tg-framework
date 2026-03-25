@@ -22,7 +22,7 @@ export type ContextFlags = {
 export type Context<
   O extends ContextOptions,
   TUser extends TgUser = TgUser,
-  E = 'extra' extends keyof O ? Required<O>['extra'] : object | undefined,
+  E = 'extra' extends keyof O ? Required<O>['extra'] : unknown,
   P = O['action'] extends ActionItemPayload ? InferPayloads<O['action']> : UnknownPayload,
   F = 'form' extends keyof O
     ? O['form'] extends object

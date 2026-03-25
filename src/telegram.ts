@@ -4,7 +4,7 @@ import { Actions, ActionsService } from './actions';
 import { ApiService } from './api.service';
 import { CallService } from './call.service';
 import type { TelegramConfig } from './types';
-import { type ContextAny, InternalContext } from './context';
+import { type ContextAny } from './context';
 import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
@@ -15,8 +15,9 @@ import { PayloadService } from './payload';
 import { LocaleServiceOptions, UpdateHandler } from './types';
 import { UpdateService } from './update.service';
 import { LocaleService } from './locale.service';
-import { InitType } from './types/init';
+import { InitType } from './types';
 import { ContextService } from './context';
+import { Handlers, HandlersService } from './handlers.service';
 
 export type TelegramOptions<T extends InitType> = {
   config: TelegramConfig;
@@ -39,6 +40,10 @@ export class Telegram<T extends InitType> {
 
   private readonly loggerFactory: TgLoggerFactory;
 
+  private readonly _actions: ActionsService<T>;
+
+  private readonly _handlers = new HandlersService<T>();
+
   public constructor(options: TelegramOptions<T>) {
     const { config, actionsTree, loggerFactory } = options;
 
@@ -48,11 +53,11 @@ export class Telegram<T extends InitType> {
     this.loggerFactory = loggerFactory;
     this.logger = this.loggerFactory.create(Telegram.name);
     this.logger.setLogLevel(config.debug.telegramUpdateLevel);
+
+    this._actions = new ActionsService(this.actionsTree);
   }
 
   private _callService: CallService | undefined;
-
-  private _actions: ActionsService<T> | undefined;
 
   private middlewaresService!: MiddlewaresService<T>;
 
@@ -76,6 +81,14 @@ export class Telegram<T extends InitType> {
 
   private _locale: LocaleService<T> | undefined;
 
+  public get actions(): Actions<T> {
+    return this._actions;
+  }
+
+  public get handlers(): Handlers<T> {
+    return this._handlers;
+  }
+
   public get context(): ContextService<T> {
     if (!this._context) throw new Error('Telegram is not inited');
     return this._context;
@@ -92,11 +105,6 @@ export class Telegram<T extends InitType> {
   public get inline(): InlineService<T> {
     if (!this._inline) throw new Error('Telegram is not inited');
     return this._inline;
-  }
-
-  public get actions(): Actions<T> {
-    if (!this._actions) throw new Error('Telegram is not inited');
-    return this._actions;
   }
 
   public get request(): RequestService<T> {
@@ -130,7 +138,7 @@ export class Telegram<T extends InitType> {
 
     this._callService = new CallService(this.config, debugConfig, this.loggerFactory);
 
-    this._actions = new ActionsService(this.actionsTree, store.actions);
+    this._actions.init(store.actions);
 
     this._payload = new PayloadService(
       this._context,
@@ -198,14 +206,14 @@ export class Telegram<T extends InitType> {
 
   private _username: string | undefined;
 
-  private handler: UpdateHandler | undefined;
+  private defaultHandler: UpdateHandler | undefined;
 
-  public async init(handler: UpdateHandler) {
+  public async init(handler?: UpdateHandler) {
     if (!this._actions) {
       throw new Error('Telegram is not inited');
     }
 
-    this.handler = handler;
+    this.defaultHandler = handler;
     await this._actions.parse();
 
     const me = await this.api.call('getMe');
@@ -214,6 +222,8 @@ export class Telegram<T extends InitType> {
     this.payload.init(this._username);
 
     this.updateService.startLongpoll();
+
+    this._handlers.init();
   }
 
   public stop() {
@@ -278,32 +288,40 @@ export class Telegram<T extends InitType> {
   }
 
   private async tryUpdate(ctx: ContextAny, tryCount = 0): Promise<void> {
-    if (!this.handler) {
+    const handlers = this._handlers.getHandlers(ctx.action);
+    if (!handlers.length && this.defaultHandler) {
+      handlers.push(this.defaultHandler);
+    }
+
+    if (!handlers.length) {
       return;
     }
 
-    const result = await this.handler();
-    if (typeof result === 'object' && result.redirect) {
-      if ('action' in result.redirect) {
-        if (tryCount > 5) {
-          this.logger.error('more try redirect');
+    for (const handler of handlers) {
+      const result = await handler(ctx);
+      if (typeof result === 'object' && result.redirect) {
+        if ('action' in result.redirect) {
+          if (tryCount > 5) {
+            this.logger.error('more try redirect');
+            return;
+          }
+
+          const { action, payload, callback } = result.redirect;
+          ctx.action = action;
+
+          ctx.payload = this.payload.decodePayload(ctx.action, ctx.payload, payload);
+
+          this.logger.debug('redirect', {
+            action: ctx.action?.meta.fullKey,
+            payload: ctx.payload,
+            tryCount,
+          });
+
+          await this.tryUpdate(ctx, tryCount + 1);
+          if (callback) {
+            await callback();
+          }
           return;
-        }
-
-        const { action, payload, callback } = result.redirect;
-        ctx.action = action;
-
-        ctx.payload = this.payload.decodePayload(ctx.action, ctx.payload, payload);
-
-        this.logger.debug('redirect', {
-          action: ctx.action?.meta.fullKey,
-          payload: ctx.payload,
-          tryCount,
-        });
-
-        await this.tryUpdate(ctx, tryCount + 1);
-        if (callback) {
-          await callback();
         }
       }
     }

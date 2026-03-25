@@ -5,6 +5,7 @@ import type { PayloadSchema } from '../payload';
 export type Meta = {
   id: number;
   fullKey: string;
+  fullPath: string[];
   schemas: PayloadSchema<object>[];
   childOf(action: ActionItem): boolean;
   parent: ActionItem | null;

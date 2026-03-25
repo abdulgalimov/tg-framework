@@ -15,6 +15,8 @@ export class ActionMeta implements Meta {
   // full key path to action
   public readonly fullKey: string;
 
+  public readonly fullPath: string[];
+
   // all schemas with parents
   public readonly schemas: PayloadSchema<object>[] = [];
 
@@ -28,6 +30,7 @@ export class ActionMeta implements Meta {
     this.data = data;
 
     this.fullKey = keyPath.join('.');
+    this.fullPath = keyPath;
     this.isRoot = keyPath.length === 0;
 
     this.parent = parentAction;
