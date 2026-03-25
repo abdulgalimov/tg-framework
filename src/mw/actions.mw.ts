@@ -10,10 +10,10 @@ import {
   Form,
   InlineChosenPayload,
   InlineQueryPayload,
+  InitType,
 } from '../types';
 import { BaseMw } from './base.mw';
 import type { Middleware, MwServiceOptions } from './types';
-import { InitType } from '../types/init';
 
 const commandsReg = /^(?<command>\/\w+)(\s+(?<value>.+))?$/;
 

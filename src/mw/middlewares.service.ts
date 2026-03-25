@@ -1,7 +1,7 @@
 import { ActionsMw } from './actions.mw';
 import type { Middleware, MwServiceOptions } from './types';
 import { UserMw } from './user.mw';
-import { InitType } from '../types/init';
+import { InitType } from '../types';
 
 export class MiddlewaresService<T extends InitType> {
   private middlewares: Middleware[];

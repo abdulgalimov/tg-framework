@@ -1,8 +1,7 @@
 import type { ContextAny } from '../context';
-import type { TgUser } from '../interfaces';
 import { BaseMw } from './base.mw';
 import type { MwServiceOptions } from './types';
-import { InitType } from '../types/init';
+import { InitType } from '../types';
 
 export class UserMw<T extends InitType> extends BaseMw<T> {
   public constructor(options: MwServiceOptions<T>) {

@@ -14,8 +14,8 @@ import type {
   ReplyResultContext,
   SendMessageArgs,
   SendPhotoArgs,
+  InitType,
 } from './types';
-import { InitType } from './types/init';
 import { ContextService } from './context';
 import { ReplyKeyboardService } from './keyboard';
 import type { ForceReply, ReplyKeyboardRemove } from '@grammyjs/types/markup';

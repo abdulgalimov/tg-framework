@@ -4,8 +4,14 @@ import type { ActionsService } from './actions';
 import type { RequestService } from './request.service';
 import type { KvStore, TgLoggerFactory } from './interfaces';
 import type { PayloadService, UnknownPayload } from './payload';
-import type { ActionForm, CreateFormOptions, Form, ReplyArgsContext, ReplyOptions } from './types';
-import { InitType } from './types/init';
+import type {
+  InitType,
+  ActionForm,
+  CreateFormOptions,
+  Form,
+  ReplyArgsContext,
+  ReplyOptions,
+} from './types';
 import { ContextService } from './context';
 import { LocaleService } from './locale.service';
 

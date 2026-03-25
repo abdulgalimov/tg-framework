@@ -1,6 +1,5 @@
-import { ReplyButtonPayload, ReplyKeyboardPayload } from '../types';
+import { InitType, ReplyButtonPayload, ReplyKeyboardPayload } from '../types';
 import { ContextService } from '../context';
-import { InitType } from '../types/init';
 import type { ReplyKeyboardsStore } from '../interfaces';
 import type { ReplyKeyboardMarkup } from '@grammyjs/types';
 import type { ForceReply, ReplyKeyboardRemove } from '@grammyjs/types/markup';

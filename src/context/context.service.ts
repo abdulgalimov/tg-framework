@@ -1,4 +1,4 @@
-import { InitType } from '../types/init';
+import { InitType } from '../types';
 import { type ContextAny, UserContextAny } from './index';
 import { AsyncLocalStorage } from 'node:async_hooks';
 

@@ -1,7 +1,6 @@
 import { HTMLFormat, HtmlOptions, TextBuilder } from './utils';
-import { LocaleOptions, LocaleServiceOptions } from './types';
+import { InitType, LocaleOptions, LocaleServiceOptions } from './types';
 import { ContextService } from './context';
-import { InitType } from './types/init';
 
 export class LocaleService<T extends InitType> {
   private readonly defaultLocale: string;

@@ -1,11 +1,10 @@
 import type { ActionsService } from '../actions';
 import type { ApiService } from '../api.service';
-import type { RequestService } from '../request.service';
 import type { FormService } from '../form.service';
 import type { InlineService } from '../inline.service';
 import type { KvStore, TelegramStore, TgLoggerFactory } from '../interfaces';
 import type { PayloadService } from '../payload';
-import { InitType } from '../types/init';
+import { InitType } from '../types';
 import { ContextService } from '../context';
 import { ReplyKeyboardService } from '../keyboard';
 

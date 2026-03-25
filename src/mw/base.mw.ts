@@ -4,7 +4,7 @@ import type { InlineService } from '../inline.service';
 import type { KvStore, TelegramStore, TgLogger } from '../interfaces';
 import type { PayloadService } from '../payload';
 import type { Middleware, MwServiceOptions } from './types';
-import { InitType } from '../types/init';
+import { InitType } from '../types';
 import { ContextService } from '../context';
 import { ReplyKeyboardService } from '../keyboard';
 import { ApiService } from '../api.service';
