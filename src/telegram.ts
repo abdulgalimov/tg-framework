@@ -65,7 +65,7 @@ export class Telegram<T extends InitType> {
 
   private middlewaresService!: MiddlewaresService<T>;
 
-  private updateService!: UpdateService;
+  private _update: UpdateService | undefined;
 
   private _context: ContextService<T> | undefined;
 
@@ -95,6 +95,11 @@ export class Telegram<T extends InitType> {
 
   public get handlers(): Handlers<T> {
     return this._handlers;
+  }
+
+  public get update(): UpdateService {
+    if (!this._update) throw new Error('Telegram is not inited');
+    return this._update;
   }
 
   public get context(): ContextService<T> {
@@ -206,7 +211,7 @@ export class Telegram<T extends InitType> {
       replyKeyboard: this._replyKeyboard,
     });
 
-    this.updateService = new UpdateService({
+    this._update = new UpdateService({
       callService: this._callService,
       handler: (update) => this.updateHandler(update),
       loggerFactory: this.loggerFactory,
@@ -226,13 +231,15 @@ export class Telegram<T extends InitType> {
     const me = await this.api.call('getMe');
     this._info.init(me.username);
 
-    this.updateService.startLongpoll();
-
     this._handlers.init();
   }
 
   public stop() {
-    this.updateService.stopLongpoll();
+    if (!this._update) {
+      throw new Error('Telegram is not inited');
+    }
+
+    this._update.stopLongpoll();
   }
 
   private async updateHandler(update: Update) {

@@ -18,7 +18,7 @@ export class UpdateService {
 
   private abortController: AbortController | undefined;
 
-  private isRunLongpoll: boolean = false;
+  private isRunningLongpoll: boolean = false;
 
   public constructor(options: UpdateOptions) {
     this.callService = options.callService;
@@ -26,11 +26,17 @@ export class UpdateService {
     this.logger = options.loggerFactory.create(UpdateService.name);
   }
 
+  public async execute(update: Update) {
+    await this.handler(update).catch((error) => {
+      this.logger.error(error);
+    });
+  }
+
   public async startLongpoll() {
-    this.isRunLongpoll = true;
+    this.isRunningLongpoll = true;
 
     const restart = (timeout: number) => {
-      if (!this.isRunLongpoll) {
+      if (!this.isRunningLongpoll) {
         return;
       }
 
@@ -63,9 +69,7 @@ export class UpdateService {
 
     if (response.length) {
       for (let i = 0; i < response.length; i++) {
-        await this.handler(response[i]!).catch((error) => {
-          this.logger.error(error);
-        });
+        await this.execute(response[i]);
       }
 
       const lastUpdate = response[response.length - 1]!;
@@ -77,7 +81,10 @@ export class UpdateService {
   }
 
   public stopLongpoll() {
-    this.isRunLongpoll = false;
+    if (!this.isRunningLongpoll) {
+      return;
+    }
+    this.isRunningLongpoll = false;
     if (this.abortController) {
       this.abortController.abort();
     }

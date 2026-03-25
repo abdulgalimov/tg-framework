@@ -14,7 +14,7 @@ TypeScript framework for building Telegram bots.
 - **Inline keyboard builders** — confirm menus, pagination, radio/checkbox switch buttons
 - **AsyncLocalStorage context isolation** — each request runs in its own isolated context
 - **Locale / i18n support** — key=value locale files with TextBuilder for HTML messages
-- **Long polling** — built-in update polling with error handling
+- **Long polling / Webhook** — built-in long polling or webhook integration via Express
 - **Middleware pipeline** — user creation, action resolution, form handling
 - **Zero runtime dependencies**
 
@@ -143,8 +143,31 @@ tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
   await tg.request.reply({ text: `Settings page ${page || 1}` });
 });
 
-// 8. Initialize and start polling
+// 8. Initialize
 await tg.init();
+
+// 9. Start long polling
+tg.update.startLongpoll();
+```
+
+Or use a **webhook** instead of long polling:
+
+```typescript
+// 8. Initialize
+await tg.init();
+
+// 9. Start webhook via Express
+import express from 'express';
+
+const app = express();
+app.use(express.json());
+
+app.post('/webhook', (req, res) => {
+  tg.update.execute(req.body);
+  res.sendStatus(200);
+});
+
+app.listen(3000);
 ```
 
 ## Core Concepts
@@ -582,7 +605,7 @@ type TelegramConfig = {
 Update → AsyncContext → UserMw → ActionsMw → handler → redirect chain → auto-answer callback → batch delete
 ```
 
-1. **Long Polling** — fetches updates from Telegram API
+1. **Long Polling / Webhook** — receives updates via long polling (`tg.update.startLongpoll()`) or webhook (`tg.update.execute(update)`)
 2. **AsyncContext** — creates isolated AsyncLocalStorage context
 3. **UserMw** — creates or updates user in the database
 4. **ActionsMw** — resolves the action:

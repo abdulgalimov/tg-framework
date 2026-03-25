@@ -14,7 +14,7 @@ TypeScript-фреймворк для построения Telegram-ботов.
 - **Билдеры inline-клавиатур** — меню подтверждения, пагинация, radio/checkbox переключатели
 - **Изоляция контекста через AsyncLocalStorage** — каждый запрос выполняется в собственном изолированном контексте
 - **Поддержка локализации (i18n)** — файлы локализации в формате key=value с TextBuilder для HTML-сообщений
-- **Long polling** — встроенный polling обновлений с обработкой ошибок
+- **Long polling / Webhook** — встроенный long polling или интеграция с webhook через Express
 - **Middleware pipeline** — создание пользователей, определение действий, обработка форм
 - **Нет runtime-зависимостей**
 
@@ -143,8 +143,31 @@ tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
   await tg.request.reply({ text: `Настройки, страница ${page || 1}` });
 });
 
-// 8. Инициализируйте и запустите polling
+// 8. Инициализация
 await tg.init();
+
+// 9. Запуск long polling
+tg.update.startLongpoll();
+```
+
+Или используйте **webhook** вместо long polling:
+
+```typescript
+// 8. Инициализация
+await tg.init();
+
+// 9. Запуск webhook через Express
+import express from 'express';
+
+const app = express();
+app.use(express.json());
+
+app.post('/webhook', (req, res) => {
+  tg.update.execute(req.body);
+  res.sendStatus(200);
+});
+
+app.listen(3000);
 ```
 
 ## Основные концепции
@@ -582,7 +605,7 @@ type TelegramConfig = {
 Update → AsyncContext → UserMw → ActionsMw → handler → redirect chain → auto-answer callback → batch delete
 ```
 
-1. **Long Polling** — получение обновлений из Telegram API
+1. **Long Polling / Webhook** — получение обновлений через long polling (`tg.update.startLongpoll()`) или webhook (`tg.update.execute(update)`)
 2. **AsyncContext** — создание изолированного контекста AsyncLocalStorage
 3. **UserMw** — создание или обновление пользователя в базе данных
 4. **ActionsMw** — определение действия:
