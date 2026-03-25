@@ -1,6 +1,6 @@
 {
   "name": "@abdulgalimov/telegram",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "TypeScript framework for building Telegram bots",
   "type": "module",
   "main": "./dist/index.js",

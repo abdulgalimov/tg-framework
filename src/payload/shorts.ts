@@ -1,36 +1,31 @@
-export const shortKeys: Record<string, string> = {
-  tokenSource: 'ts',
-  direction: 'dr',
-  poolAddress: 'pa',
-  tokenAddress: 'ta',
-  messageId: 'mi',
-  editPage: 'ep',
-  settingsId: 'si',
-  actionType: 'at',
-  priceSwitcher: 'ps',
-  walletId: 'wi',
-  copyTradingId: 'cti',
-} as const;
+export class ShortsPayload {
+  public shortKeys: Record<string, string> = {};
 
-export const fullKeys: Record<string, string> = Object.entries(shortKeys).reduce(
-  (acc, [k, v]) => {
-    acc[v] = k;
-    return acc;
-  },
-  {} as Record<string, string>,
-);
+  public fullKeys: Record<string, string> = {};
 
-export let shortValues: Record<string, string> = {};
+  public shortValues: Record<string, string> = {};
 
-export let fullValues: Record<string, string> = {};
+  public fullValues: Record<string, string> = {};
 
-export function configureShortValues(values: Record<string, string>) {
-  shortValues = { ...values };
-  fullValues = Object.entries(shortValues).reduce(
-    (acc, [k, v]) => {
-      acc[v] = k;
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
+  public configure(keys: Record<string, string>, values: Record<string, string>) {
+    this.shortKeys = keys;
+
+    this.fullKeys = Object.entries(this.shortKeys).reduce(
+      (acc, [k, v]) => {
+        acc[v] = k;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    this.shortValues = values;
+
+    this.fullValues = Object.entries(this.shortValues).reduce(
+      (acc, [k, v]) => {
+        acc[v] = k;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+  }
 }

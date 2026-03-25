@@ -18,6 +18,7 @@ import { LocaleService } from './locale.service';
 import { InitType } from './types';
 import { ContextService } from './context';
 import { Handlers, HandlersService } from './handlers.service';
+import { InfoService } from './info.service';
 
 export type TelegramOptions<T extends InitType> = {
   config: TelegramConfig;
@@ -40,6 +41,8 @@ export class Telegram<T extends InitType> {
 
   private readonly loggerFactory: TgLoggerFactory;
 
+  private readonly _info: InfoService;
+
   private readonly _actions: ActionsService<T>;
 
   private readonly _handlers = new HandlersService<T>();
@@ -54,6 +57,7 @@ export class Telegram<T extends InitType> {
     this.logger = this.loggerFactory.create(Telegram.name);
     this.logger.setLogLevel(config.debug.telegramUpdateLevel);
 
+    this._info = new InfoService();
     this._actions = new ActionsService(this.actionsTree);
   }
 
@@ -80,6 +84,10 @@ export class Telegram<T extends InitType> {
   private _replyKeyboard: ReplyKeyboardService<T> | undefined;
 
   private _locale: LocaleService<T> | undefined;
+
+  public get info(): InfoService {
+    return this._info;
+  }
 
   public get actions(): Actions<T> {
     return this._actions;
@@ -141,6 +149,7 @@ export class Telegram<T extends InitType> {
     this._actions.init(store.actions);
 
     this._payload = new PayloadService(
+      this._info,
       this._context,
       this._actions,
       store.inlineKeyboards,
@@ -204,8 +213,6 @@ export class Telegram<T extends InitType> {
     });
   }
 
-  private _username: string | undefined;
-
   private defaultHandler: UpdateHandler | undefined;
 
   public async init(handler?: UpdateHandler) {
@@ -217,9 +224,7 @@ export class Telegram<T extends InitType> {
     await this._actions.parse();
 
     const me = await this.api.call('getMe');
-    this._username = me.username;
-
-    this.payload.init(this._username);
+    this._info.init(me.username);
 
     this.updateService.startLongpoll();
 
@@ -325,16 +330,5 @@ export class Telegram<T extends InitType> {
         }
       }
     }
-  }
-
-  public get username(): string {
-    if (!this._username) {
-      throw new Error('Telegram is not inited');
-    }
-    return this._username;
-  }
-
-  public get url(): string {
-    return `t.me/${this.username}`;
   }
 }

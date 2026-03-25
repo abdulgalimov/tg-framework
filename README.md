@@ -252,7 +252,7 @@ const action = {
 
 Encoding format: `v1_salt_actionId_key1_value1_key2_value2`. If the encoded payload exceeds 64 characters, it is automatically stored in the database and replaced with `db_[UUID]`.
 
-Use `configureShortValues()` to define abbreviations for frequently used payload values.
+Use `tg.payload.configureShorts()` to define abbreviations for frequently used payload values.
 
 ### Context
 

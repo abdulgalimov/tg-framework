@@ -9,8 +9,6 @@ type CallOptions = {
 export class CallService {
   private readonly telegramConfig: TelegramConfig;
 
-  private isTesting: boolean = true;
-
   private readonly logger: TgLogger;
 
   public constructor(
@@ -51,10 +49,7 @@ export class CallService {
           headers: {
             'Content-type': 'application/json',
           },
-          body: JSON.stringify({
-            ...body,
-            disable_notification: this.isTesting,
-          }),
+          body: JSON.stringify(body),
           signal: signal || null,
         };
 

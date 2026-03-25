@@ -10,7 +10,6 @@ export * from './inline.service';
 export * from './interfaces';
 export * from './keyboard/inline-keyboard.service';
 export * from './payload';
-export { configureShortValues } from './payload/shorts';
 export * from './telegram';
 export * from './types';
 export * from './update.service';

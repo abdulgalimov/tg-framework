@@ -3,7 +3,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 
 import type { ActionsService } from '../actions';
-import type { TelegramDebugConfig } from '../types/config';
+import type { InitType, TelegramDebugConfig } from '../types';
 import type { Context } from '../context';
 import type { InlineKeyboardsStore, TgLoggerFactory } from '../interfaces';
 import {
@@ -14,12 +14,10 @@ import {
   SendPhotoArgs,
 } from '../types';
 import type { BackData, InferPayloads } from './schema';
-import { fullKeys, fullValues, shortKeys, shortValues } from './shorts';
+import { ShortsPayload } from './shorts';
 import type { PrepareKeyboard, UnknownPayload } from './types';
 import { ContextService } from '../context';
-import { InitType } from '../types/init';
-
-const CurrenVersion = 'v1';
+import { InfoService } from '../info.service';
 
 const DbPrefix = 'db_';
 const LongPrefix = 'long_';
@@ -30,11 +28,14 @@ const forceEncodeSymbols = ['%', '.'];
 export class PayloadService<T extends InitType> {
   private readonly logger;
 
-  private username: string = '';
+  private readonly currenVersion: string = 'v1';
+
+  private readonly shortsPayload = new ShortsPayload();
 
   public constructor(
+    private readonly info: InfoService,
     private readonly contextService: ContextService<T>,
-    public readonly actionsService: ActionsService<T>,
+    private readonly actionsService: ActionsService<T>,
     private readonly keyboardPayloads: InlineKeyboardsStore,
     debugConfig: TelegramDebugConfig,
     loggerFactory: TgLoggerFactory,
@@ -43,8 +44,8 @@ export class PayloadService<T extends InitType> {
     this.logger.setLogLevel(debugConfig.payloadDecoderLevel);
   }
 
-  public init(username: string) {
-    this.username = username;
+  public configureShorts(keys: Record<string, string>, values: Record<string, string>) {
+    this.shortsPayload.configure(keys, values);
   }
 
   private collectPayloads(payloads: (UnknownPayload | undefined)[]): UnknownPayload {
@@ -144,8 +145,8 @@ export class PayloadService<T extends InitType> {
 
     const fields = parsedPayload
       ? Object.entries(parsedPayload).flatMap(([k, v]) => {
-          const shortKey: string = shortKeys[k] || k;
-          const shortValue: string = shortValues[v] || v;
+          const shortKey: string = this.shortsPayload.shortKeys[k] || k;
+          const shortValue: string = this.shortsPayload.shortValues[v] || v;
 
           return [shortKey, shortValue];
         })
@@ -153,7 +154,7 @@ export class PayloadService<T extends InitType> {
 
     const salt = randomBytes(4).toString('hex');
 
-    const payload = [CurrenVersion, salt, action.meta.id, ...fields].join('_');
+    const payload = [this.currenVersion, salt, action.meta.id, ...fields].join('_');
 
     return payload.length > 64 ? `${LongPrefix}(${payload})` : payload;
   }
@@ -183,7 +184,7 @@ export class PayloadService<T extends InitType> {
       encoded = encodedB64.length < 64 ? encodedB64 : `${LongPrefix}${encoded}`;
     }
 
-    return `https://t.me/${this.username}?start=${encoded}`;
+    return `https://t.me/${this.info.username}?start=${encoded}`;
   }
 
   public async decode(sourceIn: string): Promise<[ActionItem, UnknownPayload]> {
@@ -202,7 +203,7 @@ export class PayloadService<T extends InitType> {
     }
 
     const [version, _salt, actionStr, ...values] = source.split('_');
-    if (version !== CurrenVersion) {
+    if (version !== this.currenVersion) {
       throw new Error('Invalid payload version');
     }
 
@@ -222,8 +223,8 @@ export class PayloadService<T extends InitType> {
         continue;
       }
 
-      const fullKey = fullKeys[k] || k;
-      payload[fullKey] = fullValues[v] || v;
+      const fullKey = this.shortsPayload.fullKeys[k] || k;
+      payload[fullKey] = this.shortsPayload.fullValues[v] || v;
     }
 
     const parsedPayload = this.decodePayload(action, payload);
