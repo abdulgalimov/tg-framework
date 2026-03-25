@@ -16,7 +16,7 @@ TypeScript framework for building Telegram bots.
 - **Locale / i18n support** — key=value locale files with TextBuilder for HTML messages
 - **Long polling** — built-in update polling with error handling
 - **Middleware pipeline** — user creation, action resolution, form handling
-- **Minimal dependencies** — only `uuid` at runtime
+- **Zero runtime dependencies**
 
 ## Installation
 
@@ -67,11 +67,10 @@ This creates `locales/generated/locale-types.ts` with a fully typed `LocaleKeysT
 import { readFileSync } from 'node:fs';
 import {
   Telegram,
-  Context,
+  redirectAction,
   payloadSchema,
   type InitType,
-  type TgUser, 
-  type ContextOptions,
+  type TgUser,
 } from '@abdulgalimov/telegram';
 import type { LocaleKeysType } from './locales/generated/locale-types';
 
@@ -95,7 +94,6 @@ const actionsTree = {
 type MyUser = TgUser & { name: string };
 type MyTree = typeof actionsTree;
 type MyInit = InitType & { user: MyUser; locale: LocaleKeysType; tree: MyTree };
-type MyContext<O extends ContextOptions> = ContextTg<O, MyUser>;
 
 // 5. Create Telegram instance
 const tg = new Telegram<MyInit>({
@@ -125,35 +123,27 @@ tg.create({
   },
 });
 
-// 7. Initialize and start polling
-await tg.init(async () => {
-  const ctx = tg.context.get();
-  const { action, user } = ctx;
-
-  const tree = tg.actions.tree;
-
-  if (action === tree.core.command) {
-    // Cast context to get typed payload for this action
-    const ctxCommand = ctx as MyContext<{ action: typeof tree.core.command }>;
-    const { command } = ctxCommand.payload;
-    if (command === '/start') {
-      await tg.request.reply({ text: `Welcome, ${user.name}!`, parse_mode: 'HTML' });
-    }
-    return;
-  }
-
-  if (action === tree.menu) {
-    await tg.request.reply({ text: 'Main menu' });
-    return;
-  }
-
-  if (action === tree.settings) {
-    const ctxSettings = ctx as Context<{ action: typeof tree.settings }>;
-    const { page } = ctxSettings.payload;
-    await tg.request.reply({ text: `Settings page ${page || 1}` });
-    return;
+// 7. Register handlers
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  const { payload } = ctx;
+  switch (payload.command) {
+    case '/start':
+      await tg.request.reply({ text: `Welcome, ${ctx.user.name}!`, parse_mode: 'HTML' });
+      break;
   }
 });
+
+tg.handlers.action(tg.actions.tree.menu, async (ctx) => {
+  await tg.request.reply({ text: 'Main menu' });
+});
+
+tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
+  const { page } = ctx.payload; // automatically typed!
+  await tg.request.reply({ text: `Settings page ${page || 1}` });
+});
+
+// 8. Initialize and start polling
+await tg.init();
 ```
 
 ## Core Concepts
@@ -192,6 +182,43 @@ const actionsTree = {
 ```
 
 Actions are resolved automatically from updates: commands map to `core.command`, callback queries are decoded by payload, text messages go to `core.text` (or active form), and inline queries go to `core.inline`.
+
+### Handlers
+
+Register handlers for specific actions using `tg.handlers.action()`. The callback receives a fully typed context — `ctx.payload` is automatically inferred from the action's `@payloads` schema:
+
+```typescript
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  const { command } = ctx.payload; // typed as string
+  if (command === '/start') {
+    await tg.request.reply({ text: 'Welcome!' });
+  }
+});
+```
+
+Use `tg.handlers.middleware()` to register middleware that runs before all child action handlers:
+
+```typescript
+// Runs before wallet.send, wallet.send.confirm, etc.
+tg.handlers.middleware(tg.actions.tree.wallet, async (ctx) => {
+  // common logic for all wallet actions
+});
+
+tg.handlers.action(tg.actions.tree.wallet.send, async (ctx) => {
+  const { tokenAddress, amount } = ctx.payload;
+  // ...
+});
+```
+
+Handlers can return `void` (request completes) or a redirect to chain actions:
+
+```typescript
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  if (ctx.payload.command === '/start') {
+    return { redirect: redirectAction({ action: tg.actions.tree.menu }) };
+  }
+});
+```
 
 ### Payload System
 
@@ -243,13 +270,12 @@ ctx.from;     // Telegram User object from the update
 ctx.inline;   // Inline query data
 ```
 
-**Typed payload access:** `ctx.payload` is strictly typed relative to `ctx.action`. To safely access the payload, cast the context to the specific action type:
+**Typed payload access:** When using `tg.handlers.action()`, the context is automatically typed based on the action's `@payloads` schema — no manual casting needed:
 
 ```typescript
-if (ctx.action === tree.settings) {
-  const ctxSettings = ctx as Context<{ action: typeof tree.settings }>;
-  const { page } = ctxSettings.payload; // page is typed as number | undefined
-}
+tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
+  const { page } = ctx.payload; // page is typed as number | undefined
+});
 ```
 
 ### Request Service
@@ -336,7 +362,7 @@ const refresh = tg.inlineKeyboard.refreshButton();
 Multi-step forms with state stored in KV:
 
 ```typescript
-// Define a form action
+// Define a form action in the tree
 const actionsTree = {
   // ...
   createWallet: {
@@ -345,26 +371,28 @@ const actionsTree = {
   },
 };
 
-// In your handler — start a form
-const form = await tg.form.create({
-  action: tree.createWallet,
-  defaultData: { step: 1, name: '' },
+// Start a form
+tg.handlers.action(tg.actions.tree.createWallet, async (ctx) => {
+  await tg.form.create({
+    action: tg.actions.tree.createWallet,
+    defaultData: { step: 1, name: '' },
+  });
+  await tg.form.reply({ text: 'Enter wallet name:' });
 });
 
-// Ask for input
-await tg.form.reply({ text: 'Enter wallet name:' });
+// Process form input
+tg.handlers.action(tg.actions.tree.createWallet.progress, async (ctx) => {
+  const { form } = ctx;
+  form.data.name = ctx.update.message?.text;
+  form.data.step = 2;
+  await tg.form.save(form);
+});
 
-// In form.progress handler — process user input
-const ctx = tg.context.get();
-const form = ctx.form;
-const userText = ctx.update.message?.text;
-
-form.data.name = userText;
-form.data.step = 2;
-await tg.form.save(form);
-
-// When done — delete form and continue
-await tg.form.delete();
+// Cancel form
+tg.handlers.action(tg.actions.tree.createWallet.cancel, async (ctx) => {
+  await tg.form.delete();
+  return { redirect: redirectAction({ action: tg.actions.tree.menu }) };
+});
 ```
 
 Form features:
@@ -481,23 +509,21 @@ Required locale keys: `hide-button`, `cancel-button`, `back-button`, `refresh-bu
 
 ### Redirect
 
-The handler can return a redirect to chain actions (max 5 redirects):
+A handler can return a redirect to chain actions (max 5 redirects):
 
 ```typescript
 import { redirectAction } from '@abdulgalimov/telegram';
 
-await tg.init(async () => {
-  const ctx = tg.context.get();
-  const tree = tg.actions.tree;
-
-  if (action === tree.core.command) {
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  const { command } = ctx.payload;
+  if (command === '/start') {
     // Redirect /start to menu
-    return { redirect: redirectAction({ action: tree.menu }) };
+    return { redirect: redirectAction({ action: tg.actions.tree.menu }) };
   }
+});
 
-  if (action === tree.menu) {
-    await tg.request.reply({ text: 'Menu' });
-  }
+tg.handlers.action(tg.actions.tree.menu, async (ctx) => {
+  await tg.request.reply({ text: 'Menu' });
 });
 ```
 
@@ -506,7 +532,7 @@ Redirect with payload:
 ```typescript
 return {
   redirect: redirectAction({
-    action: tree.settings,
+    action: tg.actions.tree.settings,
     payload: { page: 1 },
   }),
 };

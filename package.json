@@ -1,6 +1,6 @@
 {
   "name": "@abdulgalimov/telegram",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "TypeScript framework for building Telegram bots",
   "type": "module",
   "main": "./dist/index.js",
@@ -32,10 +32,8 @@
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "prepublishOnly": "npm run build"
-  },
-  "dependencies": {
-    "uuid": "^11.1.0"
+    "prepublishOnly": "npm run build",
+    "publish": "npm publish --access public --userconfig .npmrc"
   },
   "peerDependencies": {
     "@grammyjs/types": "^3.16.0"

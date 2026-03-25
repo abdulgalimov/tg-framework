@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 
-import { randomBytes } from 'node:crypto';
-
-import { v4 as uuidV4 } from 'uuid';
+import { randomBytes, randomUUID } from 'node:crypto';
 
 import type { ActionsService } from '../actions';
 import type { TelegramDebugConfig } from '../types/config';
@@ -237,7 +235,7 @@ export class PayloadService<T extends InitType> {
     args: SendMessageArgs | EditMessageTextArgs | SendPhotoArgs,
     chatId: number,
   ): Promise<PrepareKeyboard | null> {
-    const contextId = uuidV4();
+    const contextId = randomUUID();
 
     let encodedText = 'text' in args ? args.text : args.caption || '';
 

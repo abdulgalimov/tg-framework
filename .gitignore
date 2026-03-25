@@ -4,3 +4,4 @@ dist/
 .idea/
 .turbo/
 .claude
+.npmrc

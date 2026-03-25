@@ -16,7 +16,7 @@ TypeScript-фреймворк для построения Telegram-ботов.
 - **Поддержка локализации (i18n)** — файлы локализации в формате key=value с TextBuilder для HTML-сообщений
 - **Long polling** — встроенный polling обновлений с обработкой ошибок
 - **Middleware pipeline** — создание пользователей, определение действий, обработка форм
-- **Минимум зависимостей** — только `uuid` в рантайме
+- **Нет runtime-зависимостей**
 
 ## Установка
 
@@ -67,11 +67,10 @@ npx telegram-prepare
 import { readFileSync } from 'node:fs';
 import {
   Telegram,
-  Context,
+  redirectAction,
   payloadSchema,
   type InitType,
-  type TgUser, 
-  type ContextOptions,
+  type TgUser,
 } from '@abdulgalimov/telegram';
 import type { LocaleKeysType } from './locales/generated/locale-types';
 
@@ -95,7 +94,6 @@ const actionsTree = {
 type MyUser = TgUser & { name: string };
 type MyTree = typeof actionsTree;
 type MyInit = InitType & { user: MyUser; locale: LocaleKeysType; tree: MyTree };
-type MyContext<O extends ContextOptions> = ContextTg<O, MyUser>;
 
 // 5. Создайте экземпляр Telegram
 const tg = new Telegram<MyInit>({
@@ -125,35 +123,27 @@ tg.create({
   },
 });
 
-// 7. Инициализируйте и запустите polling
-await tg.init(async () => {
-  const ctx = tg.context.get();
-  const { action, user } = ctx;
-
-  const tree = tg.actions.tree;
-
-  if (action === tree.core.command) {
-    // Приведение контекста для получения типизированного payload
-    const ctxCommand = ctx as MyContext<{ action: typeof tree.core.command }>;
-    const { command } = ctxCommand.payload;
-    if (command === '/start') {
-      await tg.request.reply({ text: `Привет, ${user.name}!`, parse_mode: 'HTML' });
-    }
-    return;
-  }
-
-  if (action === tree.menu) {
-    await tg.request.reply({ text: 'Главное меню' });
-    return;
-  }
-
-  if (action === tree.settings) {
-    const ctxSettings = ctx as MyContext<{ action: typeof tree.settings }>;
-    const { page } = ctxSettings.payload;
-    await tg.request.reply({ text: `Настройки, страница ${page || 1}` });
-    return;
+// 7. Зарегистрируйте хендлеры
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  const { payload } = ctx;
+  switch (payload.command) {
+    case '/start':
+      await tg.request.reply({ text: `Привет, ${ctx.user.name}!`, parse_mode: 'HTML' });
+      break;
   }
 });
+
+tg.handlers.action(tg.actions.tree.menu, async (ctx) => {
+  await tg.request.reply({ text: 'Главное меню' });
+});
+
+tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
+  const { page } = ctx.payload; // типы выводятся автоматически!
+  await tg.request.reply({ text: `Настройки, страница ${page || 1}` });
+});
+
+// 8. Инициализируйте и запустите polling
+await tg.init();
 ```
 
 ## Основные концепции
@@ -192,6 +182,43 @@ const actionsTree = {
 ```
 
 Действия определяются автоматически из обновлений: команды маршрутизируются в `core.command`, callback-запросы декодируются по payload, текстовые сообщения идут в `core.text` (или в активную форму), inline-запросы — в `core.inline`.
+
+### Хендлеры
+
+Регистрируйте обработчики для конкретных действий через `tg.handlers.action()`. Callback получает полностью типизированный контекст — `ctx.payload` автоматически выводится из схемы `@payloads` действия:
+
+```typescript
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  const { command } = ctx.payload; // типизирован как string
+  if (command === '/start') {
+    await tg.request.reply({ text: 'Добро пожаловать!' });
+  }
+});
+```
+
+Используйте `tg.handlers.middleware()` для регистрации middleware, который выполняется перед хендлерами всех дочерних действий:
+
+```typescript
+// Выполняется перед wallet.send, wallet.send.confirm и т.д.
+tg.handlers.middleware(tg.actions.tree.wallet, async (ctx) => {
+  // общая логика для всех действий wallet
+});
+
+tg.handlers.action(tg.actions.tree.wallet.send, async (ctx) => {
+  const { tokenAddress, amount } = ctx.payload;
+  // ...
+});
+```
+
+Хендлеры могут возвращать `void` (запрос завершён) или redirect для цепочки действий:
+
+```typescript
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  if (ctx.payload.command === '/start') {
+    return { redirect: redirectAction({ action: tg.actions.tree.menu }) };
+  }
+});
+```
 
 ### Система Payload
 
@@ -243,13 +270,12 @@ ctx.from;     // Объект Telegram User из обновления
 ctx.inline;   // Данные inline-запроса
 ```
 
-**Типизированный доступ к payload:** `ctx.payload` строго типизирован относительно `ctx.action`. Чтобы безопасно получить payload, приведите контекст к типу конкретного действия:
+**Типизированный доступ к payload:** При использовании `tg.handlers.action()` контекст автоматически типизируется по схеме `@payloads` действия — ручное приведение типов не требуется:
 
 ```typescript
-if (ctx.action === tree.settings) {
-  const ctxSettings = ctx as Context<{ action: typeof tree.settings }>;
-  const { page } = ctxSettings.payload; // page типизирован как number | undefined
-}
+tg.handlers.action(tg.actions.tree.settings, async (ctx) => {
+  const { page } = ctx.payload; // page типизирован как number | undefined
+});
 ```
 
 ### Сервис запросов
@@ -336,7 +362,7 @@ const refresh = tg.inlineKeyboard.refreshButton();
 Многошаговые формы с хранением состояния в KV:
 
 ```typescript
-// Определите действие формы
+// Определите действие формы в дереве
 const actionsTree = {
   // ...
   createWallet: {
@@ -345,26 +371,28 @@ const actionsTree = {
   },
 };
 
-// В обработчике — запустите форму
-const form = await tg.form.create({
-  action: tree.createWallet,
-  defaultData: { step: 1, name: '' },
+// Запуск формы
+tg.handlers.action(tg.actions.tree.createWallet, async (ctx) => {
+  await tg.form.create({
+    action: tg.actions.tree.createWallet,
+    defaultData: { step: 1, name: '' },
+  });
+  await tg.form.reply({ text: 'Введите имя кошелька:' });
 });
 
-// Запросите ввод
-await tg.form.reply({ text: 'Введите имя кошелька:' });
+// Обработка ввода пользователя
+tg.handlers.action(tg.actions.tree.createWallet.progress, async (ctx) => {
+  const { form } = ctx;
+  form.data.name = ctx.update.message?.text;
+  form.data.step = 2;
+  await tg.form.save(form);
+});
 
-// В обработчике form.progress — обработайте ввод пользователя
-const ctx = tg.context.get();
-const form = ctx.form;
-const userText = ctx.update.message?.text;
-
-form.data.name = userText;
-form.data.step = 2;
-await tg.form.save(form);
-
-// По завершении — удалите форму и продолжите
-await tg.form.delete();
+// Отмена формы
+tg.handlers.action(tg.actions.tree.createWallet.cancel, async (ctx) => {
+  await tg.form.delete();
+  return { redirect: redirectAction({ action: tg.actions.tree.menu }) };
+});
 ```
 
 Возможности форм:
@@ -481,23 +509,21 @@ const message = tg.locale.build()
 
 ### Redirect
 
-Обработчик может вернуть redirect для цепочки действий (максимум 5 перенаправлений):
+Хендлер может вернуть redirect для цепочки действий (максимум 5 перенаправлений):
 
 ```typescript
 import { redirectAction } from '@abdulgalimov/telegram';
 
-await tg.init(async () => {
-  const ctx = tg.context.get();
-  const tree = tg.actions.tree;
-
-  if (action === tree.core.command) {
+tg.handlers.action(tg.actions.tree.core.command, async (ctx) => {
+  const { command } = ctx.payload;
+  if (command === '/start') {
     // Перенаправить /start на меню
-    return { redirect: redirectAction({ action: tree.menu }) };
+    return { redirect: redirectAction({ action: tg.actions.tree.menu }) };
   }
+});
 
-  if (action === tree.menu) {
-    await tg.request.reply({ text: 'Меню' });
-  }
+tg.handlers.action(tg.actions.tree.menu, async (ctx) => {
+  await tg.request.reply({ text: 'Меню' });
 });
 ```
 
@@ -506,7 +532,7 @@ Redirect с payload:
 ```typescript
 return {
   redirect: redirectAction({
-    action: tree.settings,
+    action: tg.actions.tree.settings,
     payload: { page: 1 },
   }),
 };
