@@ -54,7 +54,7 @@ export class UpdateService {
       response = await this.callService.callApi(
         'getUpdates',
         {
-          timeout: 60_000,
+          timeout: 60,
           offset: this.lastUpdateId,
         },
         {

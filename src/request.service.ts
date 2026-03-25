@@ -58,64 +58,16 @@ export class RequestService<T extends InitType> {
       }
 
       this.contextService.messageMarkDeleted({ chatId, messageId: deleteMessageId });
-      // await this.apiService.call('deleteMessage', {
-      //   chat_id: chatId,
-      //   message_id: deleteMessageId,
-      // });
     } else {
       if (!!currentMessageId && deleteMessageId.includes(currentMessageId)) {
         ctx.flags.messageDeleted = true;
       }
 
       this.contextService.messageMarkDeleted({ chatId, messageId: deleteMessageId });
-      // await this.apiService.call('deleteMessages', {
-      //   chat_id: chatId,
-      //   message_ids: deleteMessageId,
-      // });
     }
 
     await this.payloadService.deleteKeyboard(chatId, deleteMessageId);
   }
-
-  /*
-  public async send(args: ReplyArgsContext, options?: SendOptions): Promise<void> {
-    const ctx = this.contextService.get();
-    const { user } = ctx;
-
-    const { hideButton } = options || {};
-
-    const chatId =
-      ctx.update?.callback_query?.message?.chat.id ||
-      ctx.update?.message?.chat.id ||
-      user.telegramId;
-
-    if (!chatId) {
-      throw new Error('Invalid chatId in context:send');
-    }
-
-    if (hideButton) {
-      this.addButton(args, {
-        text: this.localeService.text('hide-button'),
-        callback_data: this.payloadService.encode(this.actionsTree.core.hide),
-      });
-    }
-
-    await this.sendOrEdit({
-      ...args,
-      chat_id: chatId,
-    });
-  }
-
-  private addButton(args: KeyboardArgs, button: InlineKeyboardButton) {
-    const keyboard: InlineKeyboardMarkup = (args.reply_markup as InlineKeyboardMarkup) || {
-      inline_keyboard: [],
-    };
-
-    keyboard.inline_keyboard.push([button]);
-
-    args.reply_markup = keyboard;
-  }
-   */
 
   public async reply(
     args: ReplyArgsContext,
@@ -220,12 +172,6 @@ export class RequestService<T extends InitType> {
             chatId: user.telegramId,
             messageId: lastMessageId,
           });
-          // this.apiService
-          //   .call('deleteMessage', {
-          //     chat_id: user.telegramId,
-          //     message_id: lastMessageId,
-          //   })
-          //   .catch((_error) => {});
         }
 
         await this.kv.setValue(

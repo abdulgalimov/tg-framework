@@ -3,13 +3,11 @@ import { ContextService } from '../context';
 import type { ReplyKeyboardsStore } from '../interfaces';
 import type { ReplyKeyboardMarkup } from '@grammyjs/types';
 import type { ForceReply, ReplyKeyboardRemove } from '@grammyjs/types/markup';
-import { ApiService } from '../api.service';
 
 export class ReplyKeyboardService<T extends InitType> {
   public constructor(
     private readonly contextService: ContextService<T>,
     private readonly replyKeyboardsStore: ReplyKeyboardsStore,
-    private readonly apiService: ApiService,
   ) {}
 
   public async create(
@@ -31,10 +29,6 @@ export class ReplyKeyboardService<T extends InitType> {
           chatId: savedKeyboard.chatId,
           messageId: savedKeyboard.messageId,
         });
-        // await this.apiService.call('deleteMessage', {
-        //   chat_id: savedKeyboard.chatId,
-        //   message_id: savedKeyboard.messageId,
-        // });
       }
       return;
     }

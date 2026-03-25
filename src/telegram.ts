@@ -30,6 +30,7 @@ export type CreateOptions = {
   store: TelegramStore;
   kv: KvStore;
   locale: LocaleServiceOptions;
+  defaultHandler?: UpdateHandler;
 };
 
 export class Telegram<T extends InitType> {
@@ -140,8 +141,8 @@ export class Telegram<T extends InitType> {
     return this._form;
   }
 
-  public create(options: CreateOptions) {
-    const { store, locale, kv } = options;
+  public async create(options: CreateOptions) {
+    const { store, locale, kv, defaultHandler } = options;
 
     const { debug: debugConfig } = this.config;
 
@@ -164,11 +165,7 @@ export class Telegram<T extends InitType> {
 
     this._api = new ApiService(this._callService);
 
-    this._replyKeyboard = new ReplyKeyboardService<T>(
-      this._context,
-      store.replyKeyboards,
-      this._api,
-    );
+    this._replyKeyboard = new ReplyKeyboardService<T>(this._context, store.replyKeyboards);
 
     this._request = new RequestService<T>(
       this._context,
@@ -216,16 +213,8 @@ export class Telegram<T extends InitType> {
       handler: (update) => this.updateHandler(update),
       loggerFactory: this.loggerFactory,
     });
-  }
 
-  private defaultHandler: UpdateHandler | undefined;
-
-  public async init(handler?: UpdateHandler) {
-    if (!this._actions) {
-      throw new Error('Telegram is not inited');
-    }
-
-    this.defaultHandler = handler;
+    this.defaultHandler = defaultHandler;
     await this._actions.parse();
 
     const me = await this.api.call('getMe');
@@ -233,6 +222,8 @@ export class Telegram<T extends InitType> {
 
     this._handlers.init();
   }
+
+  private defaultHandler: UpdateHandler | undefined;
 
   public stop() {
     if (!this._update) {

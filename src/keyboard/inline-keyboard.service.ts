@@ -168,8 +168,8 @@ export class InlineKeyboardService<T extends InitType> {
 
     if (inlineButtons.length > maxOnLine) {
       if (inlineButtons.length <= maxOnLine * 2) {
-        const half = Math.ceil(maxOnLine / 2);
-        return [inlineButtons.slice(0, half + 1), inlineButtons.slice(half + 1)];
+        const half = Math.ceil(inlineButtons.length / 2);
+        return [inlineButtons.slice(0, half), inlineButtons.slice(half)];
       }
     }
 

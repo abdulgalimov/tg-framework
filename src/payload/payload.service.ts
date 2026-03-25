@@ -28,7 +28,7 @@ const forceEncodeSymbols = ['%', '.'];
 export class PayloadService<T extends InitType> {
   private readonly logger;
 
-  private readonly currenVersion: string = 'v1';
+  private readonly currentVersion: string = 'v1';
 
   private readonly shortsPayload = new ShortsPayload();
 
@@ -154,7 +154,7 @@ export class PayloadService<T extends InitType> {
 
     const salt = randomBytes(4).toString('hex');
 
-    const payload = [this.currenVersion, salt, action.meta.id, ...fields].join('_');
+    const payload = [this.currentVersion, salt, action.meta.id, ...fields].join('_');
 
     return payload.length > 64 ? `${LongPrefix}(${payload})` : payload;
   }
@@ -203,7 +203,7 @@ export class PayloadService<T extends InitType> {
     }
 
     const [version, _salt, actionStr, ...values] = source.split('_');
-    if (version !== this.currenVersion) {
+    if (version !== this.currentVersion) {
       throw new Error('Invalid payload version');
     }
 
@@ -240,7 +240,15 @@ export class PayloadService<T extends InitType> {
 
     let encodedText = 'text' in args ? args.text : args.caption || '';
 
-    const replaceText = async () => {
+    const replaceText = async (count: number = 0) => {
+      if (count > 100) {
+        this.logger.error('Too many long payloads in text', {
+          count,
+          encodedText,
+        });
+        return;
+      }
+
       const longPayloadReg = /long_\((?<payload>[^)]+)\)/;
 
       const exec = longPayloadReg.exec(encodedText);
@@ -259,7 +267,7 @@ export class PayloadService<T extends InitType> {
       encodedText = encodedText.replaceAll(source, `${DbPrefix}${id}`);
 
       if (encodedText.includes(LongPrefix)) {
-        await replaceText();
+        await replaceText(count + 1);
       }
     };
 
