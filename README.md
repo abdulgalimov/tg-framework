@@ -234,6 +234,62 @@ tg.handlers.action(tg.actions.tree.wallet.send, async (ctx) => {
 });
 ```
 
+#### Middleware — Real-World Example
+
+Middleware is useful for loading shared data. For example, all wallet actions (`wallet.editName`, `wallet.delete`) need the wallet object — you can load it once in a middleware on `wallet` and pass it via `ctx.extra`:
+
+```typescript
+// Action tree
+const actionsTree = {
+  core: { /* ... */ },
+  wallet: {
+    '@payloads': payloadSchema.object({
+      walletId: payloadSchema.string(),
+    }),
+    editName: {},
+    delete: {},
+  },
+};
+
+// Extra type for wallet actions
+type WalletExtra = {
+  wallet: { id: string; name: string; balance: number };
+};
+
+// Middleware: loads wallet for all wallet.* actions
+tg.handlers.middleware<{
+    action: typeof tg.actions.tree.wallet;
+    extra: WalletExtra;
+}>(tg.actions.tree.wallet, async (ctx) => {
+  const { walletId } = ctx.payload;
+  const wallet = await db.wallets.findById(walletId);
+  if (!wallet) {
+    await tg.request.showAlert('Wallet not found');
+    return;
+  }
+  ctx.extra = { wallet };
+});
+
+// Handler: uses the loaded wallet
+tg.handlers.action<{
+    action: typeof tg.actions.tree.wallet.delete;
+    extra: WalletExtra;
+}>(tg.actions.tree.wallet.delete, async (ctx) => {
+  const { wallet } = ctx.extra;
+  await db.wallets.delete(wallet.id);
+  await tg.request.reply({ text: `Wallet "${wallet.name}" deleted` });
+});
+
+// Handler: rename also uses wallet from middleware
+tg.handlers.action<{
+    action: typeof tg.actions.tree.wallet.editName;
+    extra: WalletExtra;
+}>(tg.actions.tree.wallet.editName, async (ctx) => {
+  const { wallet } = ctx.extra;
+  await tg.request.reply({ text: `Current name: ${wallet.name}\nEnter new name:` });
+});
+```
+
 Handlers can return `void` (request completes) or a redirect to chain actions:
 
 ```typescript

@@ -234,6 +234,62 @@ tg.handlers.action(tg.actions.tree.wallet.send, async (ctx) => {
 });
 ```
 
+#### Middleware — реальный пример
+
+Middleware удобен для загрузки общих данных. Например, все действия с кошельком (`wallet.editName`, `wallet.delete`) требуют объект кошелька — его можно загрузить один раз в middleware на `wallet` и передать через `ctx.extra`:
+
+```typescript
+// Дерево действий
+const actionsTree = {
+  core: { /* ... */ },
+  wallet: {
+    '@payloads': payloadSchema.object({
+      walletId: payloadSchema.string(),
+    }),
+    editName: {},
+    delete: {},
+  },
+};
+
+// Тип extra для wallet-действий
+type WalletExtra = {
+  wallet: { id: string; name: string; balance: number };
+};
+
+// Middleware: загружает кошелек для всех wallet.* действий
+tg.handlers.middleware<{
+    action: typeof tg.actions.tree.wallet;
+    extra: WalletExtra;
+}>(tg.actions.tree.wallet, async (ctx) => {
+  const { walletId } = ctx.payload;
+  const wallet = await db.wallets.findById(walletId);
+  if (!wallet) {
+    await tg.request.showAlert('Кошелек не найден');
+    return;
+  }
+  ctx.extra = { wallet };
+});
+
+// Handler: использует загруженный кошелек
+tg.handlers.action<{
+    action: typeof tg.actions.tree.wallet.delete;
+    extra: WalletExtra;
+}>(tg.actions.tree.wallet.delete, async (ctx) => {
+  const { wallet } = ctx.extra;
+  await db.wallets.delete(wallet.id);
+  await tg.request.reply({ text: `Кошелек "${wallet.name}" удален` });
+});
+
+// Handler: переименование тоже использует кошелек из middleware
+tg.handlers.action<{
+    action: typeof tg.actions.tree.wallet.editName;
+    extra: WalletExtra;
+}>(tg.actions.tree.wallet.editName, async (ctx) => {
+  const { wallet } = ctx.extra;
+  await tg.request.reply({ text: `Текущее имя: ${wallet.name}\nВведите новое:` });
+});
+```
+
 Хендлеры могут возвращать `void` (запрос завершён) или redirect для цепочки действий:
 
 ```typescript
