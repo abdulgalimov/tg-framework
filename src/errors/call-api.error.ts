@@ -1,11 +1,15 @@
 type TgResponseError = {
   error_code: number;
   description: string;
+  parameters?: {
+    retry_after?: number;
+  };
 };
 
 export const TgErrorCodes = {
   UNKNOWN: 'UNKNOWN',
   MESSAGE_IS_NOT_MODIFIED: 'MESSAGE_IS_NOT_MODIFIED',
+  TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
 } as const;
 export type TgErrorCodes = keyof typeof TgErrorCodes;
 
@@ -30,6 +34,7 @@ const errorDescriptionsMap = errorDescriptions.reduce(
 
 export class CallApiError extends Error {
   public readonly code: TgErrorCodes;
+  public readonly retryAfter?: number;
   public constructor(
     response: TgResponseError,
     public readonly method: string,
@@ -37,6 +42,11 @@ export class CallApiError extends Error {
   ) {
     super(response.description);
 
-    this.code = errorDescriptionsMap[response.description] || TgErrorCodes.UNKNOWN;
+    if (response.error_code === 429) {
+      this.code = TgErrorCodes.TOO_MANY_REQUESTS;
+      this.retryAfter = response.parameters?.retry_after;
+    } else {
+      this.code = errorDescriptionsMap[response.description] || TgErrorCodes.UNKNOWN;
+    }
   }
 }

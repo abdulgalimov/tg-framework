@@ -7,6 +7,8 @@ export type SendFile = {
   contentType: string;
 };
 
+export type ApiMethodType = keyof ApiMethods<SendFile>;
+
 export type GetArgsFromMethod<MethodName extends keyof ApiMethods<SendFile>> =
   ApiMethods<SendFile>[MethodName] extends () => unknown
     ? null
