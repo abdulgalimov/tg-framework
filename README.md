@@ -16,6 +16,7 @@ TypeScript framework for building Telegram bots.
 - **Locale / i18n support** — key=value locale files with TextBuilder for HTML messages
 - **Long polling / Webhook** — built-in long polling or webhook integration via Express
 - **Middleware pipeline** — user creation, action resolution, form handling
+- **Rate limiting** — built-in queue with global, per-chat, and group rate limit control, automatic 429 retry
 - **Zero runtime dependencies**
 
 ## Installation
@@ -652,8 +653,54 @@ type TelegramConfig = {
     telegramCallServiceLevel: string;  // Log level for API calls
     telegramUpdateLevel: string;       // Log level for update processing
   };
+  throttle?: ThrottleConfig;           // Rate limiting settings (optional)
 };
 ```
+
+### Rate Limiting
+
+Built-in request rate control for Telegram Bot API. All outgoing calls pass through a queue that respects Telegram's rate limits. Enabled by default with sensible values.
+
+```typescript
+type ThrottleConfig = {
+  globalLimit?: number;        // Max requests per second globally (default: 30)
+  perChatInterval?: number;    // Min interval in ms between messages to same chat (default: 1000)
+  groupPerMinuteLimit?: number; // Max messages per minute for group chats (default: 20)
+  exemptMethods?: ApiMethodType[]; // Methods exempt from throttling
+};
+```
+
+**How it works:**
+
+- **Global limit** — max 30 requests per second (sliding window)
+- **Per-chat limit** — max 1 message per second to the same chat
+- **Group limit** — max 20 messages per minute for groups (chat_id < 0)
+- **429 retry** — on `Too Many Requests`, the request is automatically retried after `retry_after` (up to 3 attempts)
+
+**Exempt methods** — bypass the queue (read-only and responses to incoming requests):
+- All `answer*` methods (`answerCallbackQuery`, `answerInlineQuery`, `answerPreCheckoutQuery`, `answerShippingQuery`, `answerWebAppQuery`)
+- All `get*` methods (`getMe`, `getChat`, `getFile`, `getUpdates`, etc.)
+
+**Configuration example:**
+
+```typescript
+const tg = new Telegram<MyInit>({
+  config: {
+    apiUrl: 'https://api.telegram.org',
+    token: process.env.BOT_TOKEN!,
+    debug: { /* ... */ },
+    // Throttle settings (all fields are optional)
+    throttle: {
+      globalLimit: 25,
+      perChatInterval: 1500,
+      groupPerMinuteLimit: 15,
+    },
+  },
+  // ...
+});
+```
+
+Without specifying `throttle`, default Telegram limits apply. To provide custom exempt methods, pass the `exemptMethods` array (fully replaces the default list).
 
 ## Update Pipeline
 

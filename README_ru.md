@@ -16,6 +16,7 @@ TypeScript-фреймворк для построения Telegram-ботов.
 - **Поддержка локализации (i18n)** — файлы локализации в формате key=value с TextBuilder для HTML-сообщений
 - **Long polling / Webhook** — встроенный long polling или интеграция с webhook через Express
 - **Middleware pipeline** — создание пользователей, определение действий, обработка форм
+- **Rate limiting** — встроенная очередь с контролем глобальных, per-chat и групповых лимитов Telegram, автоматический retry при 429
 - **Нет runtime-зависимостей**
 
 ## Установка
@@ -652,8 +653,54 @@ type TelegramConfig = {
     telegramCallServiceLevel: string;  // Уровень логирования вызовов API
     telegramUpdateLevel: string;       // Уровень логирования обработки обновлений
   };
+  throttle?: ThrottleConfig;           // Настройки rate limiting (опционально)
 };
 ```
+
+### Rate Limiting
+
+Встроенная система контроля частоты запросов к Telegram Bot API. Все исходящие вызовы проходят через очередь с учётом лимитов Telegram. Включена по умолчанию с разумными значениями.
+
+```typescript
+type ThrottleConfig = {
+  globalLimit?: number;        // Макс. запросов в секунду глобально (default: 30)
+  perChatInterval?: number;    // Мин. интервал ms между сообщениями в один чат (default: 1000)
+  groupPerMinuteLimit?: number; // Макс. сообщений в минуту для групповых чатов (default: 20)
+  exemptMethods?: ApiMethodType[]; // Методы, не подлежащие throttling
+};
+```
+
+**Как это работает:**
+
+- **Глобальный лимит** — не более 30 запросов в секунду (sliding window)
+- **Per-chat лимит** — не более 1 сообщения в секунду в один чат
+- **Групповой лимит** — не более 20 сообщений в минуту для групп (chat_id < 0)
+- **429 retry** — при получении `Too Many Requests` запрос автоматически повторяется после `retry_after` (до 3 попыток)
+
+**Exempt-методы** — проходят без очереди (read-only и ответы на входящие запросы):
+- Все `answer*` методы (`answerCallbackQuery`, `answerInlineQuery`, `answerPreCheckoutQuery`, `answerShippingQuery`, `answerWebAppQuery`)
+- Все `get*` методы (`getMe`, `getChat`, `getFile`, `getUpdates` и т.д.)
+
+**Пример настройки:**
+
+```typescript
+const tg = new Telegram<MyInit>({
+  config: {
+    apiUrl: 'https://api.telegram.org',
+    token: process.env.BOT_TOKEN!,
+    debug: { /* ... */ },
+    // Настройка throttle (все поля опциональны)
+    throttle: {
+      globalLimit: 25,
+      perChatInterval: 1500,
+      groupPerMinuteLimit: 15,
+    },
+  },
+  // ...
+});
+```
+
+Без указания `throttle` — работают дефолтные лимиты. Для добавления собственных exempt-методов передайте массив `exemptMethods` (полностью заменяет дефолтный список).
 
 ## Pipeline обработки обновлений
 
