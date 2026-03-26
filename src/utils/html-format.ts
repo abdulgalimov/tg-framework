@@ -10,7 +10,7 @@ export type HtmlOptions = {
 };
 
 export const HTMLFormat = {
-  encode: (text: string) => text.replaceAll('<', '&lt;').replaceAll('<', '&gt;'),
+  encode: (text: string) => text.replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
   code: (text: string) => `<code>${text}</code>`,
   pre: (text: string) => `<pre>${text}</pre>`,
   spoiler: (text: string) => `<spoiler>${text}</spoiler>`,
