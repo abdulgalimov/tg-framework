@@ -23,12 +23,8 @@ export type BackData = {
   entranceActionId: number;
 };
 
-export type BackPayload = {
-  back?: BackData | undefined;
-};
-
 export type InferPayloads<T extends ActionItem> = T extends {
   '@payloads': PayloadSchema<infer U>;
 }
-  ? U & BackPayload
-  : never;
+  ? U
+  : undefined;

@@ -23,10 +23,6 @@ export type RedirectResult = {
   callback?: Callback | undefined;
 };
 
-export type GoBack = {
-  backData: BackData;
-};
-
 export function redirectAction<A extends ActionItem>(options: RedirectOptions<A>): RedirectResult {
   return {
     action: options.action,
@@ -35,7 +31,15 @@ export function redirectAction<A extends ActionItem>(options: RedirectOptions<A>
   };
 }
 
-// biome-ignore lint/suspicious/noConfusingVoidType: void use in function return
-export type UpdateResult = void | {
-  redirect?: RedirectResult | GoBack;
+export type ActionResult = void | {
+  redirect: RedirectResult;
 };
+
+export type MiddlewareResult =
+  | void
+  | {
+      redirect: RedirectResult;
+    }
+  | {
+      stop: boolean;
+    };

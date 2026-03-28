@@ -1,13 +1,16 @@
 import { ActionItem, InitType } from './types';
-import { UpdateResult } from './actions';
+import { ActionResult, MiddlewareResult } from './actions';
 import { Context, ContextAny, ContextOptions } from './context';
 
-type ActionsCallback = (ctx: ContextAny) => Promise<UpdateResult>;
+type ActionsCallback = (ctx: ContextAny) => Promise<ActionResult>;
 
-type HandlerMethod<T extends InitType> = <
+type MiddlewareCallback = (ctx: ContextAny) => Promise<MiddlewareResult>;
+
+type HandlerMethod<T extends InitType, IsMiddleware extends boolean> = <
   O extends ContextOptions,
   InferAction = O extends { action: infer AA } ? AA : ActionItem,
   Action extends ActionItem = InferAction extends ActionItem ? InferAction : ActionItem,
+  Result = IsMiddleware extends true ? MiddlewareResult : ActionResult,
 >(
   actionItem: Action,
   callback: (
@@ -19,23 +22,23 @@ type HandlerMethod<T extends InitType> = <
       },
       T['user']
     >,
-  ) => Promise<UpdateResult>,
+  ) => Promise<Result>,
 ) => void;
 
 type GetActionHandler = {
   action: () => ActionItem;
-  handler: ActionsCallback;
+  handler: ActionsCallback | MiddlewareCallback;
   isMiddleware?: boolean;
 };
 
 type ActionHandler = {
-  handler: ActionsCallback;
+  handler: ActionsCallback | MiddlewareCallback;
   isMiddleware?: boolean;
 };
 
 export type Handlers<T extends InitType> = {
-  middleware: HandlerMethod<T>;
-  action: HandlerMethod<T>;
+  middleware: HandlerMethod<T, true>;
+  action: HandlerMethod<T, false>;
 };
 
 export class HandlersService<T extends InitType> implements Handlers<T> {
@@ -57,27 +60,27 @@ export class HandlersService<T extends InitType> implements Handlers<T> {
     });
   }
 
-  public readonly middleware: HandlerMethod<T> = (actionItem, callback) => {
+  public readonly middleware: HandlerMethod<T, true> = (actionItem, callback) => {
     this.actionHandlersList.push({
       action: () => actionItem as ActionItem,
-      handler: callback as ActionsCallback,
+      handler: callback as unknown as MiddlewareCallback,
       isMiddleware: true,
     });
   };
-  public readonly action: HandlerMethod<T> = (actionItem, callback) => {
+  public readonly action: HandlerMethod<T, false> = (actionItem, callback) => {
     this.actionHandlersList.push({
       action: () => actionItem as ActionItem,
-      handler: callback as ActionsCallback,
+      handler: callback as unknown as ActionsCallback,
     });
   };
 
-  public getHandlers(action: ActionItem): ActionsCallback[] {
+  public getHandlers(action: ActionItem): (ActionsCallback | MiddlewareCallback)[] {
     let actionHandler = this.updateHandlersMap.get(action.meta.fullKey);
     if (!actionHandler) {
       return [];
     }
 
-    const callbacks: ActionsCallback[] = [actionHandler.handler];
+    const callbacks = [actionHandler.handler];
     let traversalAction = action;
     while (traversalAction.meta.parent) {
       traversalAction = traversalAction.meta.parent;

@@ -266,7 +266,9 @@ tg.handlers.middleware<{
   const wallet = await db.wallets.findById(walletId);
   if (!wallet) {
     await tg.request.showAlert('Wallet not found');
-    return;
+    return {
+      stop: true
+    }
   }
   ctx.extra = { wallet };
 });

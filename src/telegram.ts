@@ -4,7 +4,8 @@ import { Actions, ActionsService } from './actions';
 import { ApiService } from './api.service';
 import { CallService } from './call.service';
 import type { TelegramConfig } from './types';
-import { type ContextAny } from './context';
+import { InitType, LocaleServiceOptions, UpdateHandler } from './types';
+import { type ContextAny, ContextService } from './context';
 import { RequestService } from './request.service';
 import { FormService } from './form.service';
 import { InlineService } from './inline.service';
@@ -12,11 +13,8 @@ import { KvStore, TelegramStore, TgLogger, TgLoggerFactory } from './interfaces'
 import { InlineKeyboardService, ReplyKeyboardService } from './keyboard';
 import { MiddlewaresService } from './mw';
 import { PayloadService } from './payload';
-import { LocaleServiceOptions, UpdateHandler } from './types';
 import { UpdateService } from './update.service';
 import { LocaleService } from './locale.service';
-import { InitType } from './types';
-import { ContextService } from './context';
 import { Handlers, HandlersService } from './handlers.service';
 import { InfoService } from './info.service';
 
@@ -302,8 +300,12 @@ export class Telegram<T extends InitType> {
 
     for (const handler of handlers) {
       const result = await handler(ctx);
-      if (typeof result === 'object' && result.redirect) {
-        if ('action' in result.redirect) {
+      if (typeof result === 'object') {
+        if ('stop' in result && result.stop) {
+          return;
+        }
+
+        if ('redirect' in result) {
           if (tryCount > 5) {
             this.logger.error('more try redirect');
             return;

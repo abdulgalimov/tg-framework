@@ -13,7 +13,7 @@ import {
   SendMessageArgs,
   SendPhotoArgs,
 } from '../types';
-import type { BackData, InferPayloads } from './schema';
+import type { InferPayloads } from './schema';
 import { ShortsPayload } from './shorts';
 import type { PrepareKeyboard, UnknownPayload } from './types';
 import { ContextService } from '../context';
@@ -71,14 +71,6 @@ export class PayloadService<T extends InitType> {
   ): Record<string, string> | undefined {
     const collectable = payloads.length > 1 ? this.collectPayloads(payloads) : payloads[0];
     if (!collectable) return;
-
-    if ('back' in collectable) {
-      const backData = collectable.back as BackData;
-      this.logger.warn('encode backData', {
-        backData,
-        action: action.meta.fullKey,
-      });
-    }
 
     return action.meta.schemas.reduce(
       (accOut, schema) => {

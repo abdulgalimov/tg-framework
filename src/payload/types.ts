@@ -1,6 +1,4 @@
-import type { BackPayload } from './schema';
-
-export type UnknownPayload = (object & BackPayload) | undefined;
+export type UnknownPayload = object | undefined;
 
 export type PrepareKeyboard = {
   chatId: number;

@@ -2,6 +2,7 @@ import type { Update } from '@grammyjs/types';
 
 import type { CallService } from './call.service';
 import type { TgLogger, TgLoggerFactory } from './interfaces';
+import { setTimeout as sleep } from 'timers/promises';
 
 type UpdateOptions = {
   callService: CallService;
@@ -14,11 +15,7 @@ export class UpdateService {
 
   private logger: TgLogger;
 
-  private lastUpdateId: number | undefined;
-
   private abortController: AbortController | undefined;
-
-  private isRunningLongpoll: boolean = false;
 
   public constructor(options: UpdateOptions) {
     this.callService = options.callService;
@@ -32,59 +29,90 @@ export class UpdateService {
     });
   }
 
+  private updateQueue: Update[] = [];
+
+  private pollingStarted: boolean = false;
+
   public async startLongpoll() {
-    this.isRunningLongpoll = true;
+    this.pollingStarted = true;
 
-    const restart = (timeout: number) => {
-      if (!this.isRunningLongpoll) {
-        return;
+    let offset: number = 0;
+
+    let backoffMs = 500;
+
+    this.logger.debug('pollForever');
+
+    while (this.pollingStarted) {
+      try {
+        this.abortController = new AbortController();
+
+        this.logger.debug('getUpdates call');
+        const updates = await this.callService.callApi<Update[]>(
+          'getUpdates',
+          offset
+            ? {
+                timeout: 60,
+                offset,
+              }
+            : {
+                timeout: 60,
+              },
+          {
+            signal: this.abortController.signal,
+          },
+        );
+
+        this.logger.debug('getUpdates response', {
+          updates: updates.length,
+          updateQueue: this.updateQueue.length,
+        });
+
+        if (updates.length) {
+          const lastId = updates[updates.length - 1]!.update_id;
+          offset = lastId + 1;
+
+          this.updateQueue.push(...updates);
+          void this.runWorker();
+        }
+
+        backoffMs = 500;
+      } catch (error) {
+        const tgError = error as { code: number; message: string };
+        if (tgError?.code === 409) {
+          this.logger.error(
+            '409 Conflict: another getUpdates is running. Make sure only ONE instance is polling.',
+          );
+          await sleep(5000);
+        } else {
+          this.logger.error('poll error', error);
+          await sleep(backoffMs);
+          backoffMs = Math.min(backoffMs * 2, 15_000);
+        }
       }
+    }
+  }
 
-      setTimeout(() => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.startLongpoll();
-      }, timeout);
-    };
-
-    let response: Update[];
-
-    this.abortController = new AbortController();
-
+  private workerRunning: boolean = false;
+  private async runWorker() {
+    if (this.workerRunning) return;
+    this.workerRunning = true;
     try {
-      response = await this.callService.callApi(
-        'getUpdates',
-        {
-          timeout: 60,
-          offset: this.lastUpdateId,
-        },
-        {
-          signal: this.abortController.signal,
-        },
-      );
-    } catch (error) {
-      this.logger.error(`Fail get update`, error);
-      restart(1000);
-      return;
-    }
-
-    if (response.length) {
-      for (let i = 0; i < response.length; i++) {
-        await this.execute(response[i]);
+      while (this.updateQueue.length) {
+        const update = this.updateQueue.shift()!;
+        this.logger.debug(`runWorker start: ${update.update_id}`);
+        await this.execute(update);
+        this.logger.debug(`runWorker complete: ${update.update_id}`);
       }
-
-      const lastUpdate = response[response.length - 1]!;
-
-      this.lastUpdateId = lastUpdate.update_id + 1;
+    } finally {
+      this.workerRunning = false;
     }
-
-    restart(300);
   }
 
   public stopLongpoll() {
-    if (!this.isRunningLongpoll) {
+    if (!this.pollingStarted) {
       return;
     }
-    this.isRunningLongpoll = false;
+    this.pollingStarted = false;
     if (this.abortController) {
       this.abortController.abort();
     }
