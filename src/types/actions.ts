@@ -2,6 +2,8 @@
 
 import type { PayloadSchema } from '../payload';
 
+declare const __actionPath: unique symbol;
+
 export type Meta = {
   id: number;
   fullKey: string;
@@ -13,67 +15,69 @@ export type Meta = {
 
 export const PayloadsField = '@payloads';
 
-export type ActionItem = {
+export type ActionItem<Path extends string = string> = {
   meta: Meta;
+  readonly [__actionPath]: Path;
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: need any payload
-export type ActionItemPayload<S = any> = ActionItem & {
+export type ActionItemPayload<S = any, Path extends string = string> = ActionItem<Path> & {
   [PayloadsField]: PayloadSchema<S>;
 };
 
-export type ActionItemCommand = ActionItemPayload<{
-  command: string;
-  value?: string | undefined;
-}>;
+export type ActionItemCommand<Path extends string = string> = ActionItemPayload<
+  {
+    command: string;
+    value?: string | undefined;
+  },
+  Path
+>;
 
-export type ActionItemKeyboardButtonPayload = {
-  label?: string | undefined;
+export type ActionCore = ActionItem<'core'> & {
+  none: ActionItem<'core.none'>;
+  hide: ActionItem<'core.hide'>;
+  command: ActionItemCommand<'core.command'>;
+  text: ActionItem<'core.text'>;
+  inline: ActionInline<'core.inline'>;
+  viaBot: ActionItem<'core.viaBot'>;
 };
 
-export type ActionItemKeyboardButton = ActionItemPayload<ActionItemKeyboardButtonPayload>;
-
-export type ActionCore = ActionItem & {
-  none: ActionItem;
-  hide: ActionItem;
-  command: ActionItemCommand;
-  text: ActionItem;
-  inline: ActionInline;
-  viaBot: ActionItem;
-  keyboard: ActionItem & {
-    button: ActionItemKeyboardButton;
-  };
-};
-
-export type AllActionsTree = ActionItem & {
+export type AllActionsTree = ActionItem<''> & {
   core: ActionCore;
 };
 
-type Mapped<T> = {
-  [Property in keyof T]: TreeNode<T[Property]>;
+type JoinPath<Prefix extends string, Key extends string> = Prefix extends ''
+  ? Key
+  : `${Prefix}.${Key}`;
+
+type Mapped<T, Prefix extends string = ''> = {
+  [K in keyof T & string]: TreeNode<T[K], JoinPath<Prefix, K>>;
 };
 
-type MaybeSchema<A> = A extends {
+type MaybeSchema<A, Path extends string = string> = A extends {
   [PayloadsField]: PayloadSchema<infer A>;
 }
-  ? A & ActionItem & { [PayloadsField]: PayloadSchema<A> }
-  : A & ActionItem;
+  ? A & ActionItem<Path> & { [PayloadsField]: PayloadSchema<A> }
+  : A & ActionItem<Path>;
 
-export type TreeNode<T> = MaybeSchema<T> & Mapped<T>;
+export type TreeNode<T, Path extends string = string> = MaybeSchema<T, Path> & Mapped<T, Path>;
 
-export type ActionForm = ActionItem & {
-  progress: ActionItem;
-  cancel?: ActionItem;
+export type ActionForm<Path extends string = string> = ActionItem<Path> & {
+  progress: ActionItem<`${Path}.progress`>;
+  cancel?: ActionItem<`${Path}.cancel`>;
 };
 
 export type ActionInlinePayload = {
   query: string;
 };
-export type ActionInline = ActionItemPayload<ActionInlinePayload> & {
-  select: ActionItemPayload<ActionInlinePayload>;
+export type ActionInline<Path extends string = string> = ActionItemPayload<
+  ActionInlinePayload,
+  Path
+> & {
+  select: ActionItemPayload<ActionInlinePayload, `${Path}.select`>;
 };
 
-export type ActionDelete = ActionItem & {
-  confirm: ActionItem;
-  reject: ActionItem;
+export type ActionDelete<Path extends string = string> = ActionItem<Path> & {
+  confirm: ActionItem<`${Path}.confirm`>;
+  reject: ActionItem<`${Path}.reject`>;
 };

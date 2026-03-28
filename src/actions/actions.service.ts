@@ -10,7 +10,7 @@ type IdsMap = Record<string, number>;
 type ParsedData = Record<string, unknown>;
 
 export type Actions<T extends InitType> = {
-  readonly tree: TreeNode<T['tree']> & AllActionsTree;
+  readonly tree: TreeNode<T['tree'], ''> & AllActionsTree;
   hasById(id: number): boolean;
   getById<Action = ActionItem>(id: number): Action;
 };
@@ -18,12 +18,12 @@ export type Actions<T extends InitType> = {
 export class ActionsService<T extends InitType> implements Actions<T> {
   private readonly byId: Record<number, ActionItem> = {};
 
-  public readonly tree: TreeNode<T['tree']> & AllActionsTree;
+  public readonly tree: TreeNode<T['tree'], ''> & AllActionsTree;
 
   private store: ActionsStore | undefined;
 
   public constructor(tree: T['tree']) {
-    this.tree = tree as TreeNode<T['tree']> & AllActionsTree;
+    this.tree = tree as TreeNode<T['tree'], ''> & AllActionsTree;
   }
 
   private async getIds(actionsList: string[]): Promise<IdsMap> {
