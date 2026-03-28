@@ -6,3 +6,4 @@ dist/
 .claude
 .npmrc
 REVIEW.md
+tests

@@ -1,6 +1,7 @@
 import { ActionItem, InitType } from './types';
 import { ActionResult, MiddlewareResult } from './actions';
 import { Context, ContextAny, ContextOptions } from './context';
+import { Telegram } from './telegram';
 
 type ActionsCallback = (ctx: ContextAny) => Promise<ActionResult>;
 
@@ -8,8 +9,7 @@ type MiddlewareCallback = (ctx: ContextAny) => Promise<MiddlewareResult>;
 
 type HandlerMethod<T extends InitType, IsMiddleware extends boolean> = <
   O extends ContextOptions,
-  InferAction = O extends { action: infer AA } ? AA : ActionItem,
-  Action extends ActionItem = InferAction extends ActionItem ? InferAction : ActionItem,
+  Action extends ActionItem = O extends { action: Required<infer AA> } ? AA : ActionItem,
   Result = IsMiddleware extends true ? MiddlewareResult : ActionResult,
 >(
   actionItem: Action,
