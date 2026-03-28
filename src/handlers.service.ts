@@ -1,7 +1,6 @@
 import { ActionItem, InitType } from './types';
 import { ActionResult, MiddlewareResult } from './actions';
 import { Context, ContextAny, ContextOptions } from './context';
-import { Telegram } from './telegram';
 
 type ActionsCallback = (ctx: ContextAny) => Promise<ActionResult>;
 
