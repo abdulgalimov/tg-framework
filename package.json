@@ -1,6 +1,6 @@
 {
   "name": "@abdulgalimov/telegram",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "TypeScript framework for building Telegram bots",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,10 +36,10 @@
     "pub": "npm publish --access public --userconfig .npmrc"
   },
   "peerDependencies": {
-    "@grammyjs/types": "^3.16.0"
+    "@grammyjs/types": "^3.27.3"
   },
   "devDependencies": {
-    "@grammyjs/types": "^3.16.0",
+    "@grammyjs/types": "^3.27.3",
     "@types/node": "^25.5.0",
     "prettier": "^3.8.1",
     "tsdown": "^0.21.2",
